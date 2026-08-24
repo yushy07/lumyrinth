@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -19,11 +22,13 @@ android {
 
     buildFeatures { compose = true }
 
-    val signingProperties = java.util.Properties().apply {
-        val file = rootProject.file("keystore.properties")
-        if (file.exists()) file.inputStream().use(::load)
+    val signingProperties = Properties()
+    val signingPropertiesFile = rootProject.file("keystore.properties")
+    if (signingPropertiesFile.exists()) {
+        FileInputStream(signingPropertiesFile).use { signingProperties.load(it) }
     }
-    if (signingProperties.isNotEmpty()) {
+    val hasReleaseSigning = signingProperties.getProperty("storeFile") != null
+    if (hasReleaseSigning) {
         signingConfigs {
             create("release") {
                 storeFile = rootProject.file(signingProperties.getProperty("storeFile"))
@@ -38,7 +43,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            if (signingProperties.isNotEmpty()) signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("release")
         }
     }
 }
