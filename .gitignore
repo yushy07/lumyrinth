@@ -8,3 +8,12 @@ work/
 keystore.properties
 *.jks
 *.keystore
+*.apk
+*.aab
+captures/
+.externalNativeBuild/
+.cxx/
+out/
+**/.DS_Store
+Thumbs.db
+play-store/assets/*.psd
