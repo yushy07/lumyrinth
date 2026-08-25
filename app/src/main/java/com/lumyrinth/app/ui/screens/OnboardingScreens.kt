@@ -100,71 +100,317 @@ import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.sin
 
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Vibration
+import androidx.compose.material.icons.rounded.WaterDrop
+import androidx.compose.material.icons.rounded.Waves
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.ExperimentalTextApi
+import com.lumyrinth.app.R
+
 @Composable
 fun WelcomeScreen(
     onGetStarted: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val hapticController = remember(context) { HapticController(context) }
+
+    // Entrance Animation
+    val animProgress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        animProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+        )
+    }
+
+    // Gentle ambient pulse for cosmic background
+    val infiniteTransition = rememberInfiniteTransition(label = "welcome_ambient")
+    val pulseGlow by infiniteTransition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3600, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "pulse_glow",
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(LumyrinthColors.BgBase)
+            .drawBehind {
+                val width = size.width
+                val height = size.height
+
+                // Top ambient aura behind logo
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0x409333EA),
+                            Color(0x187E22CE),
+                            Color.Transparent,
+                        ),
+                        center = Offset(width * 0.5f, height * 0.12f),
+                        radius = width * 0.55f * pulseGlow,
+                    ),
+                    radius = width * 0.55f * pulseGlow,
+                    center = Offset(width * 0.5f, height * 0.12f),
+                )
+
+                // Center warm bloom behind hero orb
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0x35E879F9),
+                            Color(0x15F43F5E),
+                            Color.Transparent,
+                        ),
+                        center = Offset(width * 0.5f, height * 0.42f),
+                        radius = width * 0.70f * pulseGlow,
+                    ),
+                    radius = width * 0.70f * pulseGlow,
+                    center = Offset(width * 0.5f, height * 0.42f),
+                )
+
+                // Bottom subtle indigo ground
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0x224C1D95),
+                            Color.Transparent,
+                        ),
+                        center = Offset(width * 0.5f, height * 0.95f),
+                        radius = width * 0.6f,
+                    ),
+                    radius = width * 0.6f,
+                    center = Offset(width * 0.5f, height * 0.95f),
+                )
+
+                // Subtle ambient stardust particles
+                val stars = listOf(
+                    Triple(0.18f, 0.16f, 1.8f),
+                    Triple(0.82f, 0.20f, 2.2f),
+                    Triple(0.12f, 0.55f, 1.5f),
+                    Triple(0.88f, 0.60f, 2.0f),
+                    Triple(0.25f, 0.78f, 1.4f),
+                    Triple(0.75f, 0.82f, 1.8f),
+                )
+                for ((sx, sy, sr) in stars) {
+                    drawCircle(
+                        color = Color(0xD0FDA4AF),
+                        radius = sr,
+                        center = Offset(width * sx, height * sy),
+                    )
+                }
+            }
             .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 20.dp),
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // LUMYRINTH wordmark
-        Text(
-            text = "L U M Y R I N T H",
-            style = LumyrinthTypography.Wordmark,
-            textAlign = TextAlign.Center,
-        )
+        // 1. Top Mindful Category Tag & Eye-Catching App Name
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(animProgress.value)
+                .offset { IntOffset(0, ((1f - animProgress.value) * 24).toInt()) },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Category pill badge
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(Color(0x26A855F7))
+                    .border(1.dp, Color(0x3DF1A5FF), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.AutoAwesome,
+                    contentDescription = null,
+                    tint = Color(0xFFFFB2C9),
+                    modifier = Modifier.size(13.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "MINDFUL BREATHWORK",
+                    style = LumyrinthTypography.Label.copy(
+                        letterSpacing = 2.2.sp,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFCE7F3),
+                    ),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Prominent Glowing App Wordmark
+            Text(
+                text = "L U M Y R I N T H",
+                style = LumyrinthTypography.BrandTitle.copy(
+                    fontSize = 26.sp,
+                    lineHeight = 32.sp,
+                    letterSpacing = 8.5.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    brush = Brush.linearGradient(
+                        listOf(
+                            Color(0xFFFFFFFF),
+                            Color(0xFFFFF1F2),
+                            Color(0xFFFCE7F3),
+                            Color(0xFFE879F9),
+                            Color(0xFFC084FC),
+                        )
+                    ),
+                ),
+                textAlign = TextAlign.Center,
+            )
+        }
 
         Spacer(modifier = Modifier.weight(0.7f))
 
-        // Center Celestial GlowOrb
-        GlowOrb(
-            sizeVariant = OrbSize.Lg,
-            centerContent = OrbCenterContent.None,
-            animationState = OrbAnimationState.Idle(),
-        )
+        // 2. Center Celestial Lotus GlowOrb
+        Box(
+            modifier = Modifier
+                .alpha(animProgress.value)
+                .scale(0.9f + 0.1f * animProgress.value),
+            contentAlignment = Alignment.Center,
+        ) {
+            GlowOrb(
+                sizeVariant = OrbSize.Lg,
+                centerContent = OrbCenterContent.None,
+                animationState = OrbAnimationState.Idle(),
+            )
+        }
 
-        Spacer(modifier = Modifier.weight(0.6f))
+        Spacer(modifier = Modifier.weight(0.7f))
 
-        // Headline & Subtitle
-        Text(
-            text = "Find your rhythm.",
-            style = LumyrinthTypography.H1,
-            textAlign = TextAlign.Center,
-        )
+        // 3. Headline & Description
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(animProgress.value)
+                .offset { IntOffset(0, ((1f - animProgress.value) * 20).toInt()) },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Find your inner calm.",
+                style = LumyrinthTypography.H1.copy(
+                    fontSize = 28.sp,
+                    lineHeight = 34.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.3).sp,
+                ),
+                color = LumyrinthColors.TextPrimary,
+                textAlign = TextAlign.Center,
+            )
 
-        Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-        Text(
-            text = "Breathe. Focus. Unwind.",
-            style = LumyrinthTypography.Body,
-            textAlign = TextAlign.Center,
-        )
+            Text(
+                text = "Harmonize your breath with celestial visuals, calming haptics, and soothing ambient soundscapes.",
+                style = LumyrinthTypography.Body.copy(
+                    fontSize = 14.sp,
+                    lineHeight = 21.sp,
+                    color = LumyrinthColors.TextSecondary,
+                ),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 4. Feature Badges Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                FeatureBadge(
+                    icon = Icons.Rounded.Waves,
+                    label = "4 Rhythms",
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                FeatureBadge(
+                    icon = Icons.Rounded.Vibration,
+                    label = "Haptic Cues",
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                FeatureBadge(
+                    icon = Icons.Rounded.Lock,
+                    label = "100% Offline",
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.weight(0.8f))
 
-        // Bottom CTA & Page indicator
-        PrimaryButton(
-            label = "Get Started",
-            onClick = onGetStarted,
-            backgroundBrush = LumyrinthColors.GradientButton,
+        // 5. Bottom CTA & Page indicator
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(animProgress.value)
+                .offset { IntOffset(0, ((1f - animProgress.value) * 16).toInt()) },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            PrimaryButton(
+                label = "Get Started",
+                onClick = {
+                    hapticController.tick()
+                    onGetStarted()
+                },
+                backgroundBrush = LumyrinthColors.GradientButton,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            PageIndicatorDots(
+                total = 4,
+                activeIndex = 0,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+fun FeatureBadge(
+    icon: ImageVector,
+    label: String,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(Color(0x1A281A42))
+            .border(1.dp, Color(0x2E9333EA), RoundedCornerShape(999.dp))
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color(0xFFC084FC),
+            modifier = Modifier.size(13.dp),
         )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        PageIndicatorDots(
-            total = 4,
-            activeIndex = 0,
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = label,
+            style = LumyrinthTypography.BodySm.copy(
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFFE2D9F3),
+            ),
         )
-
-        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 

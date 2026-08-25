@@ -4,30 +4,166 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    
-    <!-- Outer Glow Ring (Purple/Pink) -->
-    <path
-        android:pathData="M54,26 A28,28 0 1 1 53.9,26 Z"
-        android:strokeWidth="2.5"
-        android:strokeColor="#66A855F7"
-        android:fillColor="@android:color/transparent" />
 
-    <!-- Middle Ring (Pink/Orange) -->
+    <!-- Outermost Atmospheric Glow Sphere -->
     <path
-        android:pathData="M54,34 A20,20 0 1 1 53.9,34 Z"
-        android:strokeWidth="3.0"
-        android:strokeColor="#B3EC4899"
-        android:fillColor="@android:color/transparent" />
+        android:pathData="M54,56m-34,0a34,34 0 1,1 68,0a34,34 0 1,1 -68,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="54"
+                android:centerY="56"
+                android:gradientRadius="34"
+                android:type="radial">
+                <item android:offset="0.0" android:color="#40E879F9" />
+                <item android:offset="0.5" android:color="#20A855F7" />
+                <item android:offset="1.0" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
 
-    <!-- Inner Ring (Orange) -->
+    <!-- Concentric Orbit Ring 1 (Outer) -->
     <path
-        android:pathData="M54,42 A12,12 0 1 1 53.9,42 Z"
-        android:strokeWidth="3.5"
-        android:strokeColor="#F97316"
-        android:fillColor="@android:color/transparent" />
+        android:pathData="M54,56m-31,0a31,31 0 1,1 62,0a31,31 0 1,1 -62,0"
+        android:strokeWidth="0.9"
+        android:strokeColor="#50C084FC"
+        android:fillColor="#00000000" />
 
-    <!-- Bright Core (Warm Yellow / White) -->
+    <!-- Concentric Orbit Ring 2 -->
     <path
-        android:pathData="M54,48 A6,6 0 1 1 53.9,48 Z"
-        android:fillColor="#FFF5EB" />
+        android:pathData="M54,56m-24,0a24,24 0 1,1 48,0a24,24 0 1,1 -48,0"
+        android:strokeWidth="1.1"
+        android:strokeColor="#70E879F9"
+        android:fillColor="#00000000" />
+
+    <!-- Concentric Orbit Ring 3 -->
+    <path
+        android:pathData="M54,56m-17,0a17,17 0 1,1 34,0a17,17 0 1,1 -34,0"
+        android:strokeWidth="1.3"
+        android:strokeColor="#A0F472B6"
+        android:fillColor="#00000000" />
+
+    <!-- Concentric Orbit Ring 4 (Inner halo) -->
+    <path
+        android:pathData="M54,56m-11,0a11,11 0 1,1 22,0a11,11 0 1,1 -22,0"
+        android:strokeWidth="1.4"
+        android:strokeColor="#D0FFD6E8"
+        android:fillColor="#00000000" />
+
+    <!-- Radiant Glowing Center Sun Core -->
+    <path
+        android:pathData="M54,56m-10.5,0a10.5,10.5 0 1,1 21,0a10.5,10.5 0 1,1 -21,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="54"
+                android:centerY="56"
+                android:gradientRadius="10.5"
+                android:type="radial">
+                <item android:offset="0.0" android:color="#FFFFFF" />
+                <item android:offset="0.35" android:color="#FFF1E8" />
+                <item android:offset="0.75" android:color="#FB7185" />
+                <item android:offset="1.0" android:color="#E11D48" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Top North Star Light Beam -->
+    <path
+        android:pathData="M54,20 L54,56"
+        android:strokeWidth="1.4">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="54"
+                android:startY="20"
+                android:endX="54"
+                android:endY="56"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFFFFFFF" />
+                <item android:offset="0.4" android:color="#CCFFE4E6" />
+                <item android:offset="1.0" android:color="#00FFFFFF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Base Crescent Glow Dome (Layer 1) -->
+    <path
+        android:pathData="M54,46 C67,46 78,57 78,70 C78,83 67,89 54,89 C41,89 30,83 30,70 C30,57 41,46 54,46 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="46"
+                android:endX="54"
+                android:endY="89"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#66D8B4FE" />
+                <item android:offset="0.5" android:color="#807C3AED" />
+                <item android:offset="1.0" android:color="#403B0764" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Outer Lotus Petals Wing (Layer 2) -->
+    <path
+        android:pathData="M18,52 C26,67 38,79 54,79 C70,79 82,67 90,52 C84,70 69,84 54,84 C39,84 24,70 18,52 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="18"
+                android:startY="52"
+                android:endX="90"
+                android:endY="84"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#99C4B5FD" />
+                <item android:offset="0.5" android:color="#B3A78BFA" />
+                <item android:offset="1.0" android:color="#99C4B5FD" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M18,52 C26,67 38,79 54,79 C70,79 82,67 90,52"
+        android:strokeWidth="1.2"
+        android:strokeColor="#D0E9D5FF"
+        android:fillColor="#00000000" />
+
+    <!-- Inner Golden/Rose Lotus Ribbon (Layer 3) -->
+    <path
+        android:pathData="M24,56 C34,68 44,74 54,74 C64,74 74,68 84,56 C74,70 65,77 54,77 C43,77 34,70 24,56 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="24"
+                android:startY="56"
+                android:endX="84"
+                android:endY="77"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#CCFDA4AF" />
+                <item android:offset="0.5" android:color="#FFE2E8F0" />
+                <item android:offset="1.0" android:color="#CCFDA4AF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M24,56 C34,68 44,74 54,74 C64,74 74,68 84,56"
+        android:strokeWidth="1.4"
+        android:strokeColor="#FFFFE4E6"
+        android:fillColor="#00000000" />
+
+    <!-- Top Radiant 4-Pointed Star -->
+    <path
+        android:pathData="M54,12 C54,17 52.5,19 47,19 C52.5,19 54,21 54,26 C54,21 55.5,19 61,19 C55.5,19 54,17 54,12 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Soft Star Glow Aura -->
+    <path
+        android:pathData="M54,19m-4.5,0a4.5,4.5 0 1,1 9,0a4.5,4.5 0 1,1 -9,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="54"
+                android:centerY="19"
+                android:gradientRadius="4.5"
+                android:type="radial">
+                <item android:offset="0.0" android:color="#FFFFFFFF" />
+                <item android:offset="0.4" android:color="#80FDA4AF" />
+                <item android:offset="1.0" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
 </vector>
