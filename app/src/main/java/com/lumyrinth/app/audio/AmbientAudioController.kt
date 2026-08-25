@@ -2,22 +2,31 @@ package com.lumyrinth.app.audio
 
 import android.content.Context
 import android.util.Log
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.lumyrinth.app.R
 
-/** Prepared for bundled Rain, Night, and Ocean loops. No remote audio is used. */
+/** Bundled offline ambient soundscape player with automatic audio focus management. */
 class AmbientAudioController(context: Context) {
     private val appContext = context.applicationContext
     private var player: ExoPlayer? = null
 
     init {
         try {
-            player = ExoPlayer.Builder(appContext).build().apply {
-                repeatMode = Player.REPEAT_MODE_ONE
-                volume = 0.42f
-            }
+            val audioAttributes = AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .build()
+
+            player = ExoPlayer.Builder(appContext)
+                .setAudioAttributes(audioAttributes, true)
+                .build().apply {
+                    repeatMode = Player.REPEAT_MODE_ONE
+                    volume = 0.42f
+                }
         } catch (e: Throwable) {
             Log.w("AmbientAudio", "Failed to initialize ExoPlayer", e)
         }
@@ -45,6 +54,14 @@ class AmbientAudioController(context: Context) {
             p.play()
         } catch (e: Throwable) {
             Log.w("AmbientAudio", "Failed to play ambient: $selection", e)
+        }
+    }
+
+    fun setVolume(vol: Float) {
+        try {
+            player?.volume = vol.coerceIn(0f, 1f)
+        } catch (e: Throwable) {
+            Log.w("AmbientAudio", "Failed to set volume", e)
         }
     }
 

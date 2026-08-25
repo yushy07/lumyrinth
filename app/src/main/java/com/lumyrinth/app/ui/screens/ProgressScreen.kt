@@ -109,7 +109,7 @@ fun ProgressScreen(
                     color = LumyrinthColors.TextPrimary,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                val streakCount = if (progressSummary.currentStreakDays > 0) progressSummary.currentStreakDays else 7
+                val streakCount = progressSummary.currentStreakDays
                 Text(
                     text = "$streakCount day rhythm",
                     style = LumyrinthTypography.BodySm.copy(
@@ -204,7 +204,7 @@ fun ProgressScreen(
                             Spacer(modifier = Modifier.height(4.dp))
                             Row(verticalAlignment = Alignment.Bottom) {
                                 Text(
-                                    text = if (progressSummary.todaysMindfulMinutes > 0) "${progressSummary.todaysMindfulMinutes}" else "8",
+                                    text = "${progressSummary.todaysMindfulMinutes}",
                                     style = LumyrinthTypography.StatNumber.copy(
                                         fontSize = 20.sp,
                                         fontWeight = FontWeight.Bold,
@@ -246,7 +246,7 @@ fun ProgressScreen(
                             Spacer(modifier = Modifier.height(4.dp))
                             Row(verticalAlignment = Alignment.Bottom) {
                                 Text(
-                                    text = if (progressSummary.thisWeekMinutes > 0) "${progressSummary.thisWeekMinutes}" else "42",
+                                    text = "${progressSummary.thisWeekMinutes}",
                                     style = LumyrinthTypography.StatNumber.copy(
                                         fontSize = 20.sp,
                                         fontWeight = FontWeight.Bold,
@@ -287,7 +287,7 @@ fun ProgressScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = if (progressSummary.totalSessionsCount > 0) "${progressSummary.totalSessionsCount}" else "13",
+                                text = "${progressSummary.totalSessionsCount}",
                                 style = LumyrinthTypography.StatNumber.copy(
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,

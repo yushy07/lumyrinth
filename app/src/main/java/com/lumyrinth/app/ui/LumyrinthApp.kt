@@ -32,18 +32,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lumyrinth.app.LumyrinthApplication
 import com.lumyrinth.app.R
 import com.lumyrinth.app.audio.GuidanceSoundController
 import com.lumyrinth.app.data.UserPreferences
 import com.lumyrinth.app.data.UserPreferencesRepository
 import com.lumyrinth.app.data.session.CustomRhythmEntity
 import com.lumyrinth.app.data.session.SessionEntity
+import com.lumyrinth.app.ui.viewmodels.CustomRhythmViewModel
+import com.lumyrinth.app.ui.viewmodels.ExploreViewModel
+import com.lumyrinth.app.ui.viewmodels.HomeViewModel
+import com.lumyrinth.app.ui.viewmodels.ProgressViewModel
+import com.lumyrinth.app.ui.viewmodels.SettingsViewModel
 import com.lumyrinth.app.data.session.SessionRepository
 import com.lumyrinth.app.domain.PresetRhythms
 import com.lumyrinth.app.domain.ProgressCalculator
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.domain.RhythmCategory
 import com.lumyrinth.app.haptics.HapticController
+import com.lumyrinth.app.notifications.ReminderScheduler
 import com.lumyrinth.app.ui.components.AppTab
 import com.lumyrinth.app.ui.components.BottomTabBar
 import com.lumyrinth.app.ui.screens.CompleteScreen
@@ -83,7 +91,7 @@ sealed class Screen {
     data object Terms : Screen()
 
     // Secondary & Modals
-    data class Detail(val rhythm: Rhythm) : Screen()
+    data class Detail(val rhythm: Rhythm, val returnScreen: Screen = Screen.Explore) : Screen()
     data class CustomRhythm(val editRhythm: Rhythm? = null) : Screen()
     data class ActiveSession(
         val rhythm: Rhythm,
@@ -105,49 +113,32 @@ fun LumyrinthApp() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val prefsRepo = remember { UserPreferencesRepository(context) }
-    val userPrefsState = prefsRepo.preferences.collectAsState(initial = null)
+    val appContainer = remember(context) {
+        (context.applicationContext as? LumyrinthApplication)?.container
+            ?: com.lumyrinth.app.di.AppContainer(context.applicationContext)
+    }
+
+    val prefsRepo = appContainer.userPreferencesRepository
+    val sessionRepo = appContainer.sessionRepository
+    val soundController = appContainer.guidanceSoundController
+    val hapticController = appContainer.hapticController
+
+    val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(sessionRepo, prefsRepo))
+    val exploreViewModel: ExploreViewModel = viewModel(factory = ExploreViewModel.Factory(sessionRepo, prefsRepo))
+    val progressViewModel: ProgressViewModel = viewModel(factory = ProgressViewModel.Factory(sessionRepo))
+    val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(prefsRepo, sessionRepo))
+    val customRhythmViewModel: CustomRhythmViewModel = viewModel(factory = CustomRhythmViewModel.Factory(sessionRepo))
+
+    val userPrefsState = homeViewModel.userPreferences.collectAsState()
     val userPrefs = userPrefsState.value
 
-    val sessionRepo = remember { SessionRepository.from(context) }
-    val sessions by sessionRepo.sessions.collectAsState(initial = emptyList())
-    val customRhythmEntities by sessionRepo.customRhythms.collectAsState(initial = emptyList())
-
-    val soundController = remember { GuidanceSoundController(context) }
-    val hapticController = remember { HapticController(context) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            soundController.release()
-        }
-    }
-
-    // Convert custom DB entities to domain Rhythm models
-    val customRhythms = remember(customRhythmEntities) {
-        customRhythmEntities.map { entity ->
-            Rhythm(
-                id = entity.id,
-                name = entity.name,
-                category = RhythmCategory.CUSTOM,
-                shortDescription = "Your custom breathing pattern",
-                inhaleSeconds = entity.inhaleSeconds,
-                hold1Seconds = entity.hold1Seconds,
-                exhaleSeconds = entity.exhaleSeconds,
-                hold2Seconds = entity.hold2Seconds,
-                defaultDurationMinutes = entity.defaultDurationMinutes,
-                recommendedDurationOptions = listOf(1, 3, 5, 10),
-                isCustom = true,
-            )
-        }
-    }
+    val sessions by progressViewModel.allSessions.collectAsState()
+    val customRhythms by exploreViewModel.customRhythms.collectAsState()
+    val progressSummary by homeViewModel.progressSummary.collectAsState()
+    val lastUsedRhythm by homeViewModel.lastUsedRhythm.collectAsState()
 
     val allRhythms = remember(customRhythms) {
         PresetRhythms.all + customRhythms
-    }
-
-    // Compute progress stats from real session entities
-    val progressSummary = remember(sessions) {
-        ProgressCalculator.compute(sessions)
     }
 
     // Initial screen state (null until userPrefs is loaded)
@@ -204,15 +195,6 @@ fun LumyrinthApp() {
         is Screen.Progress -> AppTab.PROGRESS
         is Screen.Settings -> AppTab.SETTINGS
         else -> null
-    }
-
-    val lastUsedRhythm = remember(progressSummary.latestSession, allRhythms) {
-        val latest = progressSummary.latestSession
-        if (latest != null) {
-            allRhythms.find { it.id == latest.rhythmId } ?: PresetRhythms.slowDown
-        } else {
-            null
-        }
     }
 
     val featuredRhythm = remember(userPrefs.selectedGoals) {
@@ -331,14 +313,14 @@ fun LumyrinthApp() {
                         progressSummary = progressSummary,
                         lastUsedRhythm = lastUsedRhythm,
                         onStartFeatured = { rhythm ->
-                            currentScreen = Screen.Detail(rhythm)
+                            currentScreen = Screen.Detail(rhythm, Screen.Home)
                         },
                         onMoodFilterClick = { category ->
                             selectedExploreCategory = category.id
                             currentScreen = Screen.Explore
                         },
                         onRepeatLastSession = { rhythm ->
-                            currentScreen = Screen.Detail(rhythm)
+                            currentScreen = Screen.Detail(rhythm, Screen.Home)
                         },
                         onExploreClick = { currentScreen = Screen.Explore },
                         onProfileClick = { currentScreen = Screen.Settings },
@@ -352,7 +334,7 @@ fun LumyrinthApp() {
                         selectedCategory = selectedExploreCategory,
                         onCategoryChange = { selectedExploreCategory = it },
                         onSelectRhythm = { rhythm ->
-                            currentScreen = Screen.Detail(rhythm)
+                            currentScreen = Screen.Detail(rhythm, Screen.Explore)
                         },
                         onCreateCustomClick = {
                             currentScreen = Screen.CustomRhythm(editRhythm = null)
@@ -379,7 +361,16 @@ fun LumyrinthApp() {
                         userPreferences = userPrefs,
                         onToggleHaptics = { scope.launch { prefsRepo.setHapticGuidanceDefault(it) } },
                         onToggleSound = { scope.launch { prefsRepo.setSoundGuidanceDefault(it) } },
-                        onToggleReminder = { scope.launch { prefsRepo.setDailyReminderEnabled(it) } },
+                        onToggleReminder = { enabled ->
+                            scope.launch {
+                                prefsRepo.setDailyReminderEnabled(enabled)
+                                if (enabled) {
+                                    ReminderScheduler.schedule(context, userPrefs.dailyReminderTime)
+                                } else {
+                                    ReminderScheduler.disable(context)
+                                }
+                            }
+                        },
                         onRetakeOnboarding = {
                             scope.launch { prefsRepo.resetOnboarding() }
                             currentScreen = Screen.Welcome
@@ -388,6 +379,7 @@ fun LumyrinthApp() {
                         onOpenTerms = { currentScreen = Screen.Terms },
                         onClearAllData = {
                             scope.launch {
+                                ReminderScheduler.disable(context)
                                 sessionRepo.clearAllData()
                                 prefsRepo.clearAllPreferences()
                                 currentScreen = Screen.Welcome
@@ -417,7 +409,7 @@ fun LumyrinthApp() {
                         isFavorite = isFav,
                         defaultSound = userPrefs.soundGuidanceDefault,
                         defaultHaptics = userPrefs.hapticGuidanceDefault,
-                        onBack = { currentScreen = Screen.Explore },
+                        onBack = { currentScreen = target.returnScreen },
                         onToggleFavorite = {
                             scope.launch { prefsRepo.toggleFavorite(target.rhythm.id) }
                         },
@@ -487,7 +479,7 @@ fun LumyrinthApp() {
                             if (soundOn) soundController.complete()
                             if (hapticsOn) hapticController.complete()
 
-                            val actualMinutes = (actualDurationSecs + 59) / 60
+                            val actualMinutes = actualDurationSecs / 60
                             val sessionEntity = SessionEntity(
                                 rhythmId = target.rhythm.id,
                                 rhythmNameSnapshot = target.rhythm.name,
@@ -495,7 +487,8 @@ fun LumyrinthApp() {
                                 startedAtEpochMillis = System.currentTimeMillis() - (actualDurationSecs * 1000L),
                                 completedNaturally = completedNaturally,
                                 durationMinutesPlanned = target.durationMinutes,
-                                durationMinutesActual = actualMinutes.coerceAtLeast(1),
+                                durationMinutesActual = actualMinutes,
+                                durationSecondsActual = actualDurationSecs,
                                 cyclesCompleted = cyclesCompleted,
                                 soundOn = soundOn,
                                 hapticsOn = hapticsOn,
@@ -506,7 +499,7 @@ fun LumyrinthApp() {
                                 currentScreen = Screen.Complete(
                                     sessionId = savedId,
                                     rhythm = target.rhythm,
-                                    durationMinutes = actualMinutes.coerceAtLeast(1),
+                                    durationMinutes = actualMinutes,
                                     cyclesCompleted = cyclesCompleted,
                                     initialMood = null,
                                 )

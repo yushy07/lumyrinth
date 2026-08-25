@@ -12,6 +12,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.lumyrinth.app.R
@@ -130,18 +131,43 @@ object LumyrinthTypography {
     )
 }
 
+object LumyrinthSpacing {
+    val xs = 4.dp
+    val sm = 8.dp
+    val md = 12.dp
+    val lg = 16.dp
+    val xl = 20.dp
+    val xxl = 24.dp
+    val xxxl = 32.dp
+    val section = 40.dp
+}
+
+object LumyrinthShapes {
+    val Chip = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+    val Control = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+    val Card = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)
+    val Modal = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)
+    val Pill = androidx.compose.foundation.shape.RoundedCornerShape(100.dp)
+}
+
 private val DarkColorScheme = darkColorScheme(
     primary = LumyrinthColors.AccentPurple,
     onPrimary = LumyrinthColors.TextPrimary,
     secondary = LumyrinthColors.AccentPink,
     onSecondary = LumyrinthColors.TextPrimary,
     tertiary = LumyrinthColors.AccentOrange,
+    onTertiary = LumyrinthColors.TextPrimary,
     background = LumyrinthColors.BgBase,
     onBackground = LumyrinthColors.TextPrimary,
     surface = LumyrinthColors.SurfaceCard,
     onSurface = LumyrinthColors.TextPrimary,
     surfaceVariant = LumyrinthColors.SurfaceCardAlt,
     onSurfaceVariant = LumyrinthColors.TextSecondary,
+    outline = LumyrinthColors.BorderMedium,
+    outlineVariant = LumyrinthColors.BorderSubtle,
+    error = androidx.compose.ui.graphics.Color(0xFFEF4444),
+    onError = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+    surfaceContainer = LumyrinthColors.BgElevated,
 )
 
 @Composable

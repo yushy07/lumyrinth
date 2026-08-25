@@ -7,6 +7,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 android {
     namespace = "com.lumyrinth.app"
     compileSdk = 35
@@ -25,14 +29,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    signingConfigs {
-        create("debugConfig") {
-            storeFile = file("${rootDir}/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
-    }
+
     val signingProperties = Properties()
     val signingPropertiesFile = rootProject.file("keystore.properties")
     if (signingPropertiesFile.exists()) {
@@ -51,7 +48,7 @@ android {
     }
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("debugConfig")
+            // Uses Android standard per-user debug keystore automatically
         }
         release {
             isMinifyEnabled = true
@@ -94,6 +91,7 @@ dependencies {
     }
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -106,5 +104,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.media3.exoplayer)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

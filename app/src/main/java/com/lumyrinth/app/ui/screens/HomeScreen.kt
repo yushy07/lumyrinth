@@ -109,7 +109,12 @@ fun HomeScreen(
     // Effective last rhythm display: fallback to Slow Down if no sessions yet
     val displayLastRhythm = lastUsedRhythm ?: PresetRhythms.slowDown
     val displayDurationText = if (progressSummary.latestSession != null) {
-        "${progressSummary.latestSession.durationMinutesActual.coerceAtLeast(displayLastRhythm.defaultDurationMinutes)} minutes"
+        val actualSecs = progressSummary.latestSession.durationSecondsActual
+        if (actualSecs > 0) {
+            if (actualSecs < 60) "$actualSecs seconds" else "${actualSecs / 60} minutes"
+        } else {
+            "${progressSummary.latestSession.durationMinutesActual} minutes"
+        }
     } else {
         "${displayLastRhythm.defaultDurationMinutes} minutes"
     }
@@ -368,9 +373,9 @@ fun HomeScreen(
                         .offset { IntOffset(0, ((1f - animProgress.value) * 60).toInt()) }
                 ) {
                     HomeProgressSummaryCard(
-                        sessionCount = progressSummary.todaysSessionCount.coerceAtLeast(2),
-                        mindfulMinutes = progressSummary.todaysMindfulMinutes.coerceAtLeast(8),
-                        streakDays = progressSummary.currentStreakDays.coerceAtLeast(3),
+                        sessionCount = progressSummary.todaysSessionCount,
+                        mindfulMinutes = progressSummary.todaysMindfulMinutes,
+                        streakDays = progressSummary.currentStreakDays,
                     )
                 }
 

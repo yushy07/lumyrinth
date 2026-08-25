@@ -48,7 +48,7 @@ class SessionRepository private constructor(private val database: LumyrinthDatab
                     context.applicationContext,
                     LumyrinthDatabase::class.java,
                     "lumyrinth.db"
-                ).fallbackToDestructiveMigration().build()
+                ).addMigrations(*LumyrinthDatabase.ALL_MIGRATIONS).build()
             ).also { instance = it }
         }
     }

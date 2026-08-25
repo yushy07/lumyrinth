@@ -43,7 +43,7 @@ Near-black surfaces, soft pastel light, Manrope typography, and the official **R
 
 | Platform | Minimum | Target |
 | --- | ---: | ---: |
-| Android | API 26 / Android 8.0 | API 36 |
+| Android | API 26 / Android 8.0 | API 35 / Android 15 |
 
 ## Run it locally
 

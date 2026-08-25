@@ -17,17 +17,17 @@ data class DayMinuteStat(
 )
 
 data class ProgressSummary(
-    val todaysSessionCount: Int,
-    val todaysMindfulMinutes: Int,
-    val currentStreakDays: Int,
-    val thisWeekMinutes: Int,
-    val totalSessionsCount: Int,
-    val totalMindfulMinutes: Int,
-    val averageSessionMinutes: Double,
-    val weeklyChart: List<DayMinuteStat>,
-    val activeDates: Set<LocalDate>,
-    val streakDates: Set<LocalDate>,
-    val latestSession: SessionEntity?,
+    val todaysSessionCount: Int = 0,
+    val todaysMindfulMinutes: Int = 0,
+    val currentStreakDays: Int = 0,
+    val thisWeekMinutes: Int = 0,
+    val totalSessionsCount: Int = 0,
+    val totalMindfulMinutes: Int = 0,
+    val averageSessionMinutes: Double = 0.0,
+    val weeklyChart: List<DayMinuteStat> = emptyList(),
+    val activeDates: Set<LocalDate> = emptySet(),
+    val streakDates: Set<LocalDate> = emptySet(),
+    val latestSession: SessionEntity? = null,
 )
 
 object ProgressCalculator {
@@ -49,16 +49,22 @@ object ProgressCalculator {
 
         val activeDates = sessionDates.map { it.first }.toSet()
 
-        // Today's stats
+        // Today's stats aggregated from actual seconds
         val todaySessions = sessionDates.filter { it.first == today }.map { it.second }
         val todaysSessionCount = todaySessions.size
-        val todaysMindfulMinutes = todaySessions.sumOf { it.durationMinutesActual }
+        val todaysTotalSeconds = todaySessions.sumOf {
+            if (it.durationSecondsActual > 0) it.durationSecondsActual else it.durationMinutesActual * 60
+        }
+        val todaysMindfulMinutes = todaysTotalSeconds / 60
 
-        // Total stats
+        // Total stats aggregated from actual seconds
         val totalSessionsCount = sessions.size
-        val totalMindfulMinutes = sessions.sumOf { it.durationMinutesActual }
+        val totalSeconds = sessions.sumOf {
+            if (it.durationSecondsActual > 0) it.durationSecondsActual else it.durationMinutesActual * 60
+        }
+        val totalMindfulMinutes = totalSeconds / 60
         val averageSessionMinutes = if (totalSessionsCount > 0) {
-            totalMindfulMinutes.toDouble() / totalSessionsCount
+            (totalSeconds.toDouble() / 60.0) / totalSessionsCount
         } else {
             0.0
         }
@@ -72,7 +78,10 @@ object ProgressCalculator {
         val weeklyChart = (0..6).map { dayOffset ->
             val date = mondayOfThisWeek.plusDays(dayOffset.toLong())
             val daySessions = sessionDates.filter { it.first == date }.map { it.second }
-            val minutes = daySessions.sumOf { it.durationMinutesActual }
+            val daySeconds = daySessions.sumOf {
+                if (it.durationSecondsActual > 0) it.durationSecondsActual else it.durationMinutesActual * 60
+            }
+            val minutes = daySeconds / 60
             val label = when (date.dayOfWeek) {
                 DayOfWeek.MONDAY -> "M"
                 DayOfWeek.TUESDAY -> "T"

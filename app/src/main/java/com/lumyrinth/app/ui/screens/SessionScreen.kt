@@ -1,6 +1,7 @@
 package com.lumyrinth.app.ui.screens
 
 import android.app.Activity
+import android.os.SystemClock
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -41,7 +42,6 @@ import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.MusicOff
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material.icons.rounded.VolumeOff
 import androidx.compose.material.icons.rounded.VolumeUp
@@ -68,24 +68,22 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.lumyrinth.app.domain.BreathPhase
-import com.lumyrinth.app.domain.PresetRhythms
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.ui.components.BreathingCircle
-import com.lumyrinth.app.ui.components.BreathingPresetSelector
 import com.lumyrinth.app.ui.components.ConfirmDialog
 import com.lumyrinth.app.ui.components.ExhaleEasing
-import com.lumyrinth.app.ui.components.GlowOrb
-import com.lumyrinth.app.ui.components.IconCircleButton
 import com.lumyrinth.app.ui.components.InhaleEasing
 import com.lumyrinth.app.ui.components.OrbAnimationState
 import com.lumyrinth.app.ui.components.OrbCenterContent
-import com.lumyrinth.app.ui.components.OrbSize
 import com.lumyrinth.app.ui.components.ToggleSwitch
 import com.lumyrinth.app.ui.components.rememberIsReducedMotion
 import com.lumyrinth.app.ui.theme.LumyrinthColors
@@ -112,31 +110,51 @@ fun SessionScreen(
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
+    val lifecycleOwner = LocalLifecycleOwner.current
     val isReducedMotion = rememberIsReducedMotion()
 
-    var currentRhythm by remember { mutableStateOf(rhythm) }
+    // V1 Fixed Rhythm for exact session history tracking
+    val currentRhythm = rhythm
     val totalSessionMillis = durationMinutes * 60 * 1000L
     var elapsedSessionMillis by remember { mutableLongStateOf(0L) }
     var isPaused by remember { mutableStateOf(false) }
     var soundOn by remember { mutableStateOf(initialSoundOn) }
     var hapticsOn by remember { mutableStateOf(initialHapticsOn) }
+    var isCompleting by remember { mutableStateOf(false) }
+
+    // Monotonic clock timing anchor using SystemClock.elapsedRealtime()
+    val sessionStartRealtime = remember { SystemClock.elapsedRealtime() }
+    var accumulatedPauseMillis by remember { mutableLongStateOf(0L) }
+    var pauseStartRealtime by remember { mutableLongStateOf(0L) }
 
     var showConfirmClose by remember { mutableStateOf(false) }
     var showQuickSettings by remember { mutableStateOf(false) }
 
-    // Screen Wake Lock: Acquire when running, release when paused or disposed
-    DisposableEffect(isPaused) {
+    // Screen Wake Lock & Auto-Pause on App Backgrounding (M2.2)
+    DisposableEffect(isPaused, lifecycleOwner) {
         if (!isPaused) {
             activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) {
+                if (!isPaused) {
+                    isPaused = true
+                    pauseStartRealtime = SystemClock.elapsedRealtime()
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
         onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
             activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
 
-    // Active Phases (0-duration phases are automatically excluded)
+    // Active Phases
     val activePhases = remember(currentRhythm) { currentRhythm.activePhases() }
     var currentPhaseIndex by remember(currentRhythm) { mutableIntStateOf(0) }
     var phaseElapsedMillis by remember(currentRhythm) { mutableLongStateOf(0L) }
@@ -149,40 +167,44 @@ fun SessionScreen(
     val currentPhaseTotalSeconds = currentPhasePair.second
     val currentPhaseTotalMillis = currentPhaseTotalSeconds * 1000L
 
-    // Current real-time calculated orb scale (0.75f baseline to 1.0f max + wobble)
     var currentOrbScale by remember { mutableFloatStateOf(0.75f) }
 
     // Trigger cue sound & haptics when entering a new phase
     LaunchedEffect(currentPhaseIndex, currentRhythm) {
-        onPhaseTransition(currentPhase, soundOn, hapticsOn)
+        if (!isCompleting) {
+            onPhaseTransition(currentPhase, soundOn, hapticsOn)
+        }
     }
 
-    // Master High-Resolution Frame-Synced Animation Loop (ANIMATIONS.md Sec 1-5)
+    // Monotonic Clock Sync Loop (M2.1 & M2.4)
     LaunchedEffect(isPaused, totalSessionMillis, currentRhythm) {
-        var lastFrameTime = 0L
-        while (elapsedSessionMillis < totalSessionMillis) {
-            withFrameMillis { frameTime ->
+        while (elapsedSessionMillis < totalSessionMillis && !isCompleting) {
+            withFrameMillis { _ ->
                 if (!isPaused) {
-                    if (lastFrameTime != 0L) {
-                        val deltaMillis = (frameTime - lastFrameTime).coerceIn(0L, 50L)
-                        elapsedSessionMillis += deltaMillis
-                        phaseElapsedMillis += deltaMillis
+                    val now = SystemClock.elapsedRealtime()
+                    val activeTime = (now - sessionStartRealtime - accumulatedPauseMillis).coerceAtLeast(0L)
+                    elapsedSessionMillis = activeTime.coerceAtMost(totalSessionMillis)
 
-                        // Advance Phase if phase duration elapsed
-                        if (phaseElapsedMillis >= currentPhaseTotalMillis) {
-                            phaseElapsedMillis -= currentPhaseTotalMillis
-                            val nextIndex = currentPhaseIndex + 1
-                            if (nextIndex % activePhases.size == 0) {
-                                cyclesCompleted += 1
+                    // Compute cycle and phase position deterministically from total pattern length
+                    val fullCycleMillis = currentRhythm.cycleSeconds * 1000L
+                    if (fullCycleMillis > 0) {
+                        cyclesCompleted = (elapsedSessionMillis / fullCycleMillis).toInt()
+                        val currentCycleOffsetMs = elapsedSessionMillis % fullCycleMillis
+
+                        var accumulatedPhaseMs = 0L
+                        for (i in activePhases.indices) {
+                            val phaseMs = activePhases[i].second * 1000L
+                            if (currentCycleOffsetMs < accumulatedPhaseMs + phaseMs) {
+                                currentPhaseIndex = (cyclesCompleted * activePhases.size) + i
+                                phaseElapsedMillis = currentCycleOffsetMs - accumulatedPhaseMs
+                                break
                             }
-                            currentPhaseIndex = nextIndex
+                            accumulatedPhaseMs += phaseMs
                         }
                     }
                 }
-                lastFrameTime = frameTime
             }
 
-            // Real-Time Scale Calculation (Sec 2.1 - 2.4 & 9)
             val currentPair = activePhases[currentPhaseIndex % activePhases.size]
             val activePhaseType = currentPair.first
             val phaseDurationMs = currentPair.second * 1000f
@@ -194,7 +216,6 @@ fun SessionScreen(
                         val fastFraction = (phaseElapsedMillis / 350f).coerceIn(0f, 1f)
                         0.75f + (0.25f * FastOutSlowInEasing.transform(fastFraction))
                     } else {
-                        // Section 2.1 InhaleEasing: cubic-bezier(0.45, 0, 0.55, 1)
                         0.75f + (0.25f * InhaleEasing.transform(phaseFraction))
                     }
                 }
@@ -202,7 +223,6 @@ fun SessionScreen(
                     if (isReducedMotion || isPaused) {
                         1.0f
                     } else {
-                        // Section 2.2 Micro-breathing wobble: 0.99 - 1.01 on 2s cycle
                         val wobble = (sin((phaseElapsedMillis / 2000.0) * 2 * Math.PI) * 0.01f).toFloat()
                         1.0f + wobble
                     }
@@ -212,7 +232,6 @@ fun SessionScreen(
                         val fastFraction = (phaseElapsedMillis / 350f).coerceIn(0f, 1f)
                         1.0f - (0.25f * FastOutSlowInEasing.transform(fastFraction))
                     } else {
-                        // Section 2.3 ExhaleEasing: cubic-bezier(0.55, 0, 0.45, 1)
                         1.0f - (0.25f * ExhaleEasing.transform(phaseFraction))
                     }
                 }
@@ -220,7 +239,6 @@ fun SessionScreen(
                     if (isReducedMotion || isPaused) {
                         0.75f
                     } else {
-                        // Section 2.4 Micro-breathing wobble at small scale
                         val wobble = (sin((phaseElapsedMillis / 2000.0) * 2 * Math.PI) * 0.01f).toFloat()
                         0.75f * (1.0f + wobble)
                     }
@@ -228,8 +246,9 @@ fun SessionScreen(
             }
         }
 
-        // Natural completion trigger
-        if (elapsedSessionMillis >= totalSessionMillis) {
+        // Idempotent natural completion
+        if (elapsedSessionMillis >= totalSessionMillis && !isCompleting) {
+            isCompleting = true
             onSessionFinished(
                 true,
                 (elapsedSessionMillis / 1000L).toInt(),
@@ -494,7 +513,21 @@ fun SessionScreen(
             // Large Center Pause / Resume Button with Glowing Gradient Ring Border
             CenterPlayPauseControl(
                 isPaused = isPaused,
-                onClick = { isPaused = !isPaused },
+                onClick = {
+                    if (isPaused) {
+                        // Resuming
+                        val now = SystemClock.elapsedRealtime()
+                        if (pauseStartRealtime > 0L) {
+                            accumulatedPauseMillis += (now - pauseStartRealtime).coerceAtLeast(0L)
+                            pauseStartRealtime = 0L
+                        }
+                        isPaused = false
+                    } else {
+                        // Pausing
+                        pauseStartRealtime = SystemClock.elapsedRealtime()
+                        isPaused = true
+                    }
+                },
             )
 
             // Vibration / Haptics Toggle Button
@@ -518,13 +551,16 @@ fun SessionScreen(
             cancelLabel = "Keep Going",
             onConfirm = {
                 showConfirmClose = false
-                onSessionFinished(
-                    false,
-                    (elapsedSessionMillis / 1000L).toInt(),
-                    cyclesCompleted,
-                    soundOn,
-                    hapticsOn,
-                )
+                if (!isCompleting) {
+                    isCompleting = true
+                    onSessionFinished(
+                        false,
+                        (elapsedSessionMillis / 1000L).toInt(),
+                        cyclesCompleted,
+                        soundOn,
+                        hapticsOn,
+                    )
+                }
             },
             onCancel = {
                 showConfirmClose = false
@@ -576,37 +612,7 @@ fun SessionScreen(
                     ToggleSwitch(checked = hapticsOn, onCheckedChange = { hapticsOn = it })
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    text = "Breathing Rhythm Preset",
-                    style = LumyrinthTypography.H3.copy(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
-                    color = LumyrinthColors.TextPrimary,
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                val inSessionPresets = remember {
-                    listOf(
-                        PresetRhythms.square,      // Box Breathing (4-4-4-4)
-                        PresetRhythms.deepRest,    // 4-7-8 Technique (4-7-8)
-                        PresetRhythms.slowDown,    // Slow Down (4-6)
-                        PresetRhythms.equalRhythm, // Equal Rhythm (4-4)
-                        PresetRhythms.awaken,      // Awaken (4-2-4-2)
-                        PresetRhythms.steady,      // Steady (5-5)
-                    )
-                }
-
-                BreathingPresetSelector(
-                    presets = inSessionPresets,
-                    selectedRhythm = currentRhythm,
-                    onSelectRhythm = { newRhythm ->
-                        currentRhythm = newRhythm
-                        showQuickSettings = false
-                    },
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

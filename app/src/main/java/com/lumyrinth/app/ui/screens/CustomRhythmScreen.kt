@@ -88,8 +88,8 @@ fun CustomRhythmScreen(
     ) -> Unit,
 ) {
     var inhaleSeconds by remember { mutableIntStateOf(initialRhythm?.inhaleSeconds ?: 4) }
-    var hold1Seconds by remember { mutableIntStateOf(initialRhythm?.hold1Seconds ?: 2) }
-    var exhaleSeconds by remember { mutableIntStateOf(initialRhythm?.exhaleSeconds ?: 6) }
+    var hold1Seconds by remember { mutableIntStateOf(initialRhythm?.hold1Seconds ?: 0) }
+    var exhaleSeconds by remember { mutableIntStateOf(initialRhythm?.exhaleSeconds ?: 4) }
     var hold2Seconds by remember { mutableIntStateOf(initialRhythm?.hold2Seconds ?: 0) }
     var durationMinutes by remember { mutableIntStateOf(initialRhythm?.defaultDurationMinutes ?: 5) }
 
