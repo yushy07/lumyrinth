@@ -63,6 +63,11 @@ android {
 }
 
 dependencies {
+    constraints {
+        implementation(libs.jdom2) {
+            because("Upgrade jdom2 to 2.0.6.1 for security and compatibility")
+        }
+    }
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.activity.compose)

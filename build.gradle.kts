@@ -3,3 +3,11 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.ksp) apply false
 }
+
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            force("org.jdom:jdom2:2.0.6.1")
+        }
+    }
+}

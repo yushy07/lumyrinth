@@ -10,8 +10,10 @@ room = "2.7.1"
 work = "2.10.1"
 media3 = "1.6.1"
 ksp = "2.1.10-1.0.30"
+jdom2 = "2.0.6.1"
 
 [libraries]
+jdom2 = { group = "org.jdom", name = "jdom2", version.ref = "jdom2" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
