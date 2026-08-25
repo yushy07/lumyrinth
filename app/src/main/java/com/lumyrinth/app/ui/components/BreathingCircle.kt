@@ -16,9 +16,23 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
@@ -35,6 +49,7 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -43,10 +58,14 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.domain.BreathPhase
+import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import kotlinx.coroutines.delay
@@ -467,6 +486,125 @@ fun BreathingCircle(
 }
 
 /**
+ * Self-driving autonomous BreathingCircle Composable that smoothly loops through
+ * a selected Rhythm preset (e.g., Box Breathing, 4-7-8 Technique), dynamically
+ * adjusting its expansion/contraction animation speed to match the active preset.
+ */
+@Composable
+fun RhythmBreathingCircle(
+    rhythm: Rhythm,
+    modifier: Modifier = Modifier,
+    circleSize: Dp = 240.dp,
+    isPaused: Boolean = false,
+    showPhaseLabel: Boolean = true,
+    showCountdown: Boolean = true,
+    onPhaseChange: ((BreathPhase) -> Unit)? = null,
+) {
+    val isReducedMotion = rememberIsReducedMotion()
+    val activePhases = remember(rhythm) { rhythm.activePhases() }
+
+    var currentPhaseIndex by remember(rhythm) { mutableIntStateOf(0) }
+    var phaseElapsedMillis by remember(rhythm) { mutableLongStateOf(0L) }
+    var currentScale by remember(rhythm) { mutableFloatStateOf(0.75f) }
+
+    val safeIndex = currentPhaseIndex % activePhases.size
+    val currentPhasePair = activePhases.getOrElse(safeIndex) { BreathPhase.INHALE to 4 }
+    val activePhase = currentPhasePair.first
+    val currentPhaseDurationMs = (currentPhasePair.second * 1000f).coerceAtLeast(500f)
+
+    LaunchedEffect(activePhase) {
+        onPhaseChange?.invoke(activePhase)
+    }
+
+    LaunchedEffect(rhythm, isPaused) {
+        var lastFrameTime = 0L
+        while (true) {
+            withFrameMillis { frameTime ->
+                if (!isPaused) {
+                    if (lastFrameTime != 0L) {
+                        val delta = (frameTime - lastFrameTime).coerceIn(0L, 50L)
+                        phaseElapsedMillis += delta
+
+                        if (phaseElapsedMillis >= currentPhaseDurationMs) {
+                            phaseElapsedMillis = 0L
+                            currentPhaseIndex = (currentPhaseIndex + 1) % activePhases.size
+                        }
+                    }
+                }
+                lastFrameTime = frameTime
+            }
+
+            val fraction = (phaseElapsedMillis / currentPhaseDurationMs).coerceIn(0f, 1f)
+            currentScale = when (activePhase) {
+                BreathPhase.INHALE -> {
+                    if (isReducedMotion) {
+                        0.75f + (0.25f * FastOutSlowInEasing.transform(fraction))
+                    } else {
+                        0.75f + (0.25f * InhaleEasing.transform(fraction))
+                    }
+                }
+                BreathPhase.HOLD_AFTER_INHALE -> {
+                    if (isReducedMotion || isPaused) 1.0f
+                    else 1.0f + (sin((phaseElapsedMillis / 2000.0) * 2 * PI) * 0.012f).toFloat()
+                }
+                BreathPhase.EXHALE -> {
+                    if (isReducedMotion) {
+                        1.0f - (0.25f * FastOutSlowInEasing.transform(fraction))
+                    } else {
+                        1.0f - (0.25f * ExhaleEasing.transform(fraction))
+                    }
+                }
+                BreathPhase.HOLD_AFTER_EXHALE -> {
+                    if (isReducedMotion || isPaused) 0.75f
+                    else 0.75f * (1.0f + (sin((phaseElapsedMillis / 2000.0) * 2 * PI) * 0.012f).toFloat())
+                }
+            }
+        }
+    }
+
+    val remainingMillis = (currentPhaseDurationMs - phaseElapsedMillis).coerceAtLeast(0f)
+    val secondsLeft = kotlin.math.ceil(remainingMillis / 1000f).toInt().coerceAtLeast(0)
+
+    BreathingCircle(
+        modifier = modifier,
+        circleSize = circleSize,
+        animationState = OrbAnimationState.Breathing(
+            scale = currentScale,
+            phase = activePhase,
+            isPaused = isPaused,
+        ),
+        customContent = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+            ) {
+                if (showPhaseLabel) {
+                    Text(
+                        text = activePhase.label,
+                        style = LumyrinthTypography.Label.copy(
+                            fontSize = 13.sp,
+                            letterSpacing = 2.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        ),
+                        color = Color.White.copy(alpha = 0.9f),
+                    )
+                }
+                if (showCountdown) {
+                    Text(
+                        text = "$secondsLeft",
+                        style = LumyrinthTypography.Countdown.copy(
+                            fontSize = if (showPhaseLabel) 36.sp else 44.sp,
+                        ),
+                        color = LumyrinthColors.TextPrimary,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        },
+    )
+}
+
+/**
  * Self-driving autonomous BreathingCircle Composable.
  * Automatically animates expansion and contraction smoothly across the given breath phase.
  */
@@ -546,3 +684,64 @@ fun AutonomousBreathingCircle(
         customContent = content,
     )
 }
+
+/**
+ * Interactive selector component to choose between different breathing rhythm presets
+ * (e.g., Box Breathing, 4-7-8 Technique, Slow Down, Equal Rhythm, Awaken).
+ */
+@Composable
+fun BreathingPresetSelector(
+    presets: List<Rhythm>,
+    selectedRhythm: Rhythm,
+    onSelectRhythm: (Rhythm) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp),
+    ) {
+        items(presets.size) { index ->
+            val preset = presets[index]
+            val isSelected = preset.id == selectedRhythm.id
+            val activeBorder = if (isSelected) Color(0xFFE879F9) else Color(0x22FFFFFF)
+            val activeBg = if (isSelected) Color(0x33A855F7) else Color(0x14FFFFFF)
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(activeBg)
+                    .border(1.dp, activeBorder, RoundedCornerShape(16.dp))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        role = Role.RadioButton,
+                        onClick = { onSelectRhythm(preset) },
+                    )
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = preset.name,
+                        style = LumyrinthTypography.BodySm.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 13.sp,
+                        ),
+                        color = if (isSelected) Color.White else LumyrinthColors.TextSecondary,
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = preset.patternCode.replace(" Breathing", ""),
+                        style = LumyrinthTypography.Label.copy(
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                        ),
+                        color = if (isSelected) Color(0xFFF472B6) else Color(0x88FFFFFF),
+                    )
+                }
+            }
+        }
+    }
+}
+

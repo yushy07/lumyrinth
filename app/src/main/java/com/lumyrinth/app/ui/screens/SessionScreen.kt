@@ -74,8 +74,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.domain.BreathPhase
+import com.lumyrinth.app.domain.PresetRhythms
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.ui.components.BreathingCircle
+import com.lumyrinth.app.ui.components.BreathingPresetSelector
 import com.lumyrinth.app.ui.components.ConfirmDialog
 import com.lumyrinth.app.ui.components.ExhaleEasing
 import com.lumyrinth.app.ui.components.GlowOrb
@@ -112,6 +114,7 @@ fun SessionScreen(
     val activity = context as? Activity
     val isReducedMotion = rememberIsReducedMotion()
 
+    var currentRhythm by remember { mutableStateOf(rhythm) }
     val totalSessionMillis = durationMinutes * 60 * 1000L
     var elapsedSessionMillis by remember { mutableLongStateOf(0L) }
     var isPaused by remember { mutableStateOf(false) }
@@ -134,9 +137,9 @@ fun SessionScreen(
     }
 
     // Active Phases (0-duration phases are automatically excluded)
-    val activePhases = remember(rhythm) { rhythm.activePhases() }
-    var currentPhaseIndex by remember { mutableIntStateOf(0) }
-    var phaseElapsedMillis by remember { mutableLongStateOf(0L) }
+    val activePhases = remember(currentRhythm) { currentRhythm.activePhases() }
+    var currentPhaseIndex by remember(currentRhythm) { mutableIntStateOf(0) }
+    var phaseElapsedMillis by remember(currentRhythm) { mutableLongStateOf(0L) }
     var cyclesCompleted by remember { mutableIntStateOf(0) }
 
     val currentPhasePair = activePhases.getOrElse(currentPhaseIndex % activePhases.size) {
@@ -150,12 +153,12 @@ fun SessionScreen(
     var currentOrbScale by remember { mutableFloatStateOf(0.75f) }
 
     // Trigger cue sound & haptics when entering a new phase
-    LaunchedEffect(currentPhaseIndex) {
+    LaunchedEffect(currentPhaseIndex, currentRhythm) {
         onPhaseTransition(currentPhase, soundOn, hapticsOn)
     }
 
     // Master High-Resolution Frame-Synced Animation Loop (ANIMATIONS.md Sec 1-5)
-    LaunchedEffect(isPaused, totalSessionMillis) {
+    LaunchedEffect(isPaused, totalSessionMillis, currentRhythm) {
         var lastFrameTime = 0L
         while (elapsedSessionMillis < totalSessionMillis) {
             withFrameMillis { frameTime ->
@@ -346,7 +349,34 @@ fun SessionScreen(
             }
         }
 
-        Spacer(modifier = Modifier.weight(0.4f))
+        Spacer(modifier = Modifier.weight(0.3f))
+
+        // Current Rhythm / Preset quick switch indicator
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color(0x22FFFFFF))
+                .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    role = Role.Button,
+                    onClick = { showQuickSettings = true },
+                )
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "${currentRhythm.name} · ${currentRhythm.patternCode.replace(" Breathing", "")}",
+                style = LumyrinthTypography.Label.copy(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                ),
+                color = Color(0xFFF472B6),
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Phase Title with Soft Crossfade / Slide Transition (ANIMATIONS.md Section 3)
         AnimatedContent(
@@ -545,6 +575,36 @@ fun SessionScreen(
                     Text("Haptic Guidance", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
                     ToggleSwitch(checked = hapticsOn, onCheckedChange = { hapticsOn = it })
                 }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Breathing Rhythm Preset",
+                    style = LumyrinthTypography.H3.copy(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
+                    color = LumyrinthColors.TextPrimary,
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                val inSessionPresets = remember {
+                    listOf(
+                        PresetRhythms.square,      // Box Breathing (4-4-4-4)
+                        PresetRhythms.deepRest,    // 4-7-8 Technique (4-7-8)
+                        PresetRhythms.slowDown,    // Slow Down (4-6)
+                        PresetRhythms.equalRhythm, // Equal Rhythm (4-4)
+                        PresetRhythms.awaken,      // Awaken (4-2-4-2)
+                        PresetRhythms.steady,      // Steady (5-5)
+                    )
+                }
+
+                BreathingPresetSelector(
+                    presets = inSessionPresets,
+                    selectedRhythm = currentRhythm,
+                    onSelectRhythm = { newRhythm ->
+                        currentRhythm = newRhythm
+                        showQuickSettings = false
+                    },
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
             }

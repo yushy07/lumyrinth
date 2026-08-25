@@ -121,7 +121,7 @@ object PresetRhythms {
 
     val square = Rhythm(
         id = "square",
-        name = "Square",
+        name = "Box Breathing",
         category = RhythmCategory.RELAX,
         inhaleSeconds = 4,
         hold1Seconds = 4,
@@ -129,7 +129,7 @@ object PresetRhythms {
         hold2Seconds = 4,
         recommendedDurationOptions = listOf(1, 3, 5, 10),
         defaultDurationMinutes = 4,
-        shortDescription = "A structured rhythm for steady attention.",
+        shortDescription = "A balanced 4-4-4-4 technique for focus and steady composure.",
     )
 
     val steady = Rhythm(
@@ -173,7 +173,7 @@ object PresetRhythms {
 
     val deepRest = Rhythm(
         id = "deep_rest",
-        name = "Deep Rest",
+        name = "4-7-8 Technique",
         category = RhythmCategory.SLEEP,
         inhaleSeconds = 4,
         hold1Seconds = 7,
@@ -181,7 +181,7 @@ object PresetRhythms {
         hold2Seconds = 0,
         recommendedDurationOptions = listOf(1, 3, 5, 10),
         defaultDurationMinutes = 5,
-        shortDescription = "A calming 4-7-8 pattern for drifting into deep sleep.",
+        shortDescription = "A classic 4-7-8 calming pattern for deep relaxation and sleep.",
     )
 
     val awaken = Rhythm(

@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.CenterFocusStrong
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SelfImprovement
 import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material.icons.rounded.WbSunny
@@ -30,7 +31,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -44,11 +48,15 @@ import com.lumyrinth.app.domain.PresetRhythms
 import com.lumyrinth.app.domain.ProgressSummary
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.domain.RhythmCategory
+import com.lumyrinth.app.ui.components.BreathingPresetSelector
 import com.lumyrinth.app.ui.components.ChipFilter
 import com.lumyrinth.app.ui.components.ChipVariant
 import com.lumyrinth.app.ui.components.ContinueRhythmCard
 import com.lumyrinth.app.ui.components.FeatureCard
 import com.lumyrinth.app.ui.components.HomeProgressSummaryCard
+import com.lumyrinth.app.ui.components.PrimaryButton
+import com.lumyrinth.app.ui.components.RhythmBreathingCircle
+import com.lumyrinth.app.ui.components.StandardCard
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import java.time.LocalTime
@@ -71,6 +79,19 @@ fun HomeScreen(
             hour < 18 -> "Good afternoon"
             else -> "Good evening"
         }
+    }
+
+    var selectedPreset by remember { mutableStateOf(PresetRhythms.square) }
+
+    val presetOptions = remember {
+        listOf(
+            PresetRhythms.square,      // Box Breathing (4-4-4-4)
+            PresetRhythms.deepRest,    // 4-7-8 Technique (4-7-8)
+            PresetRhythms.slowDown,    // Slow Down (4-6)
+            PresetRhythms.equalRhythm, // Equal Rhythm (4-4)
+            PresetRhythms.awaken,      // Awaken (4-2-4-2)
+            PresetRhythms.steady,      // Steady (5-5)
+        )
     }
 
     // Staggered screen entry animation
@@ -153,20 +174,91 @@ fun HomeScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState()),
         ) {
-            // Hero / Featured Quick Breathe Card
-            Box(
+            // Interactive Breathing Rhythm Presets & Live BreathingCircle Visual Anchor
+            StandardCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(animProgress.value)
-                    .offset { IntOffset(0, ((1f - animProgress.value) * 30).toInt()) }
+                    .offset { IntOffset(0, ((1f - animProgress.value) * 25).toInt()) },
+                padding = androidx.compose.foundation.layout.PaddingValues(18.dp),
             ) {
-                FeatureCard(
-                    badge = "Quick Breathe",
-                    duration = "${featuredRhythm.defaultDurationMinutes} min",
-                    title = featuredRhythm.name,
-                    subtitle = "${featuredRhythm.inhaleSeconds} sec inhale  •  ${featuredRhythm.exhaleSeconds} sec exhale",
-                    onStart = { onStartFeatured(featuredRhythm) },
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column {
+                            Text(
+                                text = "BREATHING PRESETS",
+                                style = LumyrinthTypography.Label.copy(
+                                    letterSpacing = 1.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                                color = Color(0xFFE879F9),
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = selectedPreset.name,
+                                style = LumyrinthTypography.H2.copy(fontSize = 18.sp),
+                                color = Color.White,
+                            )
+                        }
+
+                        Text(
+                            text = selectedPreset.patternSummary,
+                            style = LumyrinthTypography.Label.copy(fontSize = 12.sp),
+                            color = LumyrinthColors.TextSecondary,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Preset Selector: Box Breathing, 4-7-8 Technique, Slow Down, etc.
+                    BreathingPresetSelector(
+                        presets = presetOptions,
+                        selectedRhythm = selectedPreset,
+                        onSelectRhythm = { selectedPreset = it },
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Real-Time Animated BreathingCircle synchronized with selected preset speed
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        RhythmBreathingCircle(
+                            rhythm = selectedPreset,
+                            circleSize = 210.dp,
+                            showPhaseLabel = true,
+                            showCountdown = true,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = selectedPreset.shortDescription,
+                        style = LumyrinthTypography.BodySm.copy(fontSize = 13.sp),
+                        color = LumyrinthColors.TextSecondary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    PrimaryButton(
+                        label = "Begin ${selectedPreset.name}",
+                        onClick = { onStartFeatured(selectedPreset) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
