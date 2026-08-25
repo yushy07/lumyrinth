@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.domain.BreathPhase
 import com.lumyrinth.app.domain.Rhythm
+import com.lumyrinth.app.ui.components.BreathingCircle
 import com.lumyrinth.app.ui.components.ConfirmDialog
 import com.lumyrinth.app.ui.components.ExhaleEasing
 import com.lumyrinth.app.ui.components.GlowOrb
@@ -380,9 +381,9 @@ fun SessionScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Center GlowOrb with Real-Time Scale & Countdown
-        GlowOrb(
-            sizeVariant = OrbSize.Xl,
+        // Center BreathingCircle with Real-Time Scale & Countdown
+        BreathingCircle(
+            circleSize = 300.dp,
             centerContent = OrbCenterContent.Countdown(phaseSecondsRemaining),
             animationState = OrbAnimationState.Breathing(
                 scale = currentOrbScale,
