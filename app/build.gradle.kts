@@ -70,6 +70,15 @@ dependencies {
         implementation(libs.bouncycastle.bcprov) {
             because("Upgrade bcprov-jdk18on to 1.80 or later")
         }
+        implementation(libs.bouncycastle.bcpkix) {
+            because("Upgrade bcpkix-jdk18on to 1.80 or later")
+        }
+        implementation(libs.jose4j) {
+            because("Upgrade jose4j to 0.9.6 or later")
+        }
+        implementation(libs.commons.lang3) {
+            because("Upgrade commons-lang3 to 3.17.0 or later")
+        }
         implementation(libs.netty.codec) {
             because("Upgrade netty-codec to 4.1.118.Final or later")
         }
@@ -78,6 +87,9 @@ dependencies {
         }
         implementation(libs.netty.codec.http2) {
             because("Upgrade netty-codec-http2 to 4.1.118.Final or later")
+        }
+        implementation(libs.netty.handler.proxy) {
+            because("Upgrade netty-handler-proxy to 4.1.118.Final or later")
         }
     }
     implementation(libs.androidx.core.ktx)
