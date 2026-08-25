@@ -1,19 +1,65 @@
-.gradle/
-.idea/
-build/
-app/build/
+# Built application files
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Environment & Secrets (Crucial: never commit sensitive credentials or keys)
+.env
+.env.*
+!.env.example
+*.env
 local.properties
-*.iml
-work/
 keystore.properties
+secrets.properties
+google-services.json
+GoogleService-Info.plist
+credentials.json
+client_secret*.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
 *.jks
 *.keystore
-*.apk
-*.aab
-captures/
-.externalNativeBuild/
+debug.keystore
+debug.keystore.base64
+
+# Gradle & Kotlin caches
+.gradle/
+.kotlin/
+build/
+app/build/
+*/build/
+.build-outputs/
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Native build & C++ outputs
 .cxx/
+.externalNativeBuild/
+captures/
 out/
+bin/
+gen/
+work/
+
+# OS specific files
 **/.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+ehthumbs.db
+
+# Design & Play store source assets
 play-store/assets/*.psd
+
