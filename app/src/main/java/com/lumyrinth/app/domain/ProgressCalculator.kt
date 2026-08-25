@@ -22,6 +22,8 @@ data class ProgressSummary(
     val currentStreakDays: Int,
     val thisWeekMinutes: Int,
     val totalSessionsCount: Int,
+    val totalMindfulMinutes: Int,
+    val averageSessionMinutes: Double,
     val weeklyChart: List<DayMinuteStat>,
     val activeDates: Set<LocalDate>,
     val streakDates: Set<LocalDate>,
@@ -52,8 +54,14 @@ object ProgressCalculator {
         val todaysSessionCount = todaySessions.size
         val todaysMindfulMinutes = todaySessions.sumOf { it.durationMinutesActual }
 
-        // Total sessions
+        // Total stats
         val totalSessionsCount = sessions.size
+        val totalMindfulMinutes = sessions.sumOf { it.durationMinutesActual }
+        val averageSessionMinutes = if (totalSessionsCount > 0) {
+            totalMindfulMinutes.toDouble() / totalSessionsCount
+        } else {
+            0.0
+        }
 
         // Streak calculation
         val currentStreakDays = calculateStreak(activeDates, today)
@@ -92,6 +100,8 @@ object ProgressCalculator {
             currentStreakDays = currentStreakDays,
             thisWeekMinutes = thisWeekMinutes,
             totalSessionsCount = totalSessionsCount,
+            totalMindfulMinutes = totalMindfulMinutes,
+            averageSessionMinutes = averageSessionMinutes,
             weeklyChart = weeklyChart,
             activeDates = activeDates,
             streakDates = streakDates,

@@ -64,6 +64,9 @@ import com.lumyrinth.app.ui.components.StandardCard
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 
+import com.lumyrinth.app.ui.components.CosmicSectionBackground
+import com.lumyrinth.app.ui.components.SectionTheme
+
 @Composable
 fun ExploreScreen(
     allRhythms: List<Rhythm>,
@@ -124,14 +127,16 @@ fun ExploreScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LumyrinthColors.BgBase)
-            .statusBarsPadding()
-            .padding(horizontal = 20.dp),
-    ) {
-        Spacer(modifier = Modifier.height(14.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        CosmicSectionBackground(theme = SectionTheme.EXPLORE)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp),
+        ) {
+            Spacer(modifier = Modifier.height(14.dp))
 
         // Top Header
         Row(
@@ -388,7 +393,8 @@ fun ExploreScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // Generous bottom spacer so content clears floating bottom nav bar
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 
@@ -409,5 +415,6 @@ fun ExploreScreen(
             },
         )
     }
+}
 }
 

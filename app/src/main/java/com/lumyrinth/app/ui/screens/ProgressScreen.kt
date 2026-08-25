@@ -56,6 +56,9 @@ import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import java.time.LocalDate
 import java.time.YearMonth
 
+import com.lumyrinth.app.ui.components.CosmicSectionBackground
+import com.lumyrinth.app.ui.components.SectionTheme
+
 @Composable
 fun ProgressScreen(
     progressSummary: ProgressSummary,
@@ -79,13 +82,15 @@ fun ProgressScreen(
         label = "flame_pulse",
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LumyrinthColors.BgBase)
-            .statusBarsPadding()
-            .padding(horizontal = 20.dp),
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        CosmicSectionBackground(theme = SectionTheme.PROGRESS)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp),
+        ) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Top Header with streak flame badge
@@ -324,9 +329,100 @@ fun ProgressScreen(
                     onNextMonth = { currentYearMonth = currentYearMonth.plusMonths(1) },
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Duration & Frequency Insights Card
+                Text(
+                    text = "Session Insights",
+                    style = LumyrinthTypography.H3.copy(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                    color = LumyrinthColors.TextPrimary,
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFF130E22))
+                        .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(20.dp))
+                        .padding(18.dp),
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Total Mindful Minutes",
+                                style = LumyrinthTypography.BodySm.copy(fontSize = 13.sp),
+                                color = LumyrinthColors.TextSecondary,
+                            )
+                            Text(
+                                text = "${progressSummary.totalMindfulMinutes} min",
+                                style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                                color = Color(0xFFE879F9),
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0x14FFFFFF)))
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Avg. Session Length",
+                                style = LumyrinthTypography.BodySm.copy(fontSize = 13.sp),
+                                color = LumyrinthColors.TextSecondary,
+                            )
+                            val avgFormatted = if (progressSummary.averageSessionMinutes > 0) {
+                                String.format(java.util.Locale.US, "%.1f min", progressSummary.averageSessionMinutes)
+                            } else {
+                                "0.0 min"
+                            }
+                            Text(
+                                text = avgFormatted,
+                                style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                                color = Color.White,
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0x14FFFFFF)))
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Practice Frequency",
+                                style = LumyrinthTypography.BodySm.copy(fontSize = 13.sp),
+                                color = LumyrinthColors.TextSecondary,
+                            )
+                            Text(
+                                text = "${progressSummary.activeDates.size} active days",
+                                style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                                color = Color(0xFF38BDF8),
+                            )
+                        }
+                    }
+                }
+
+                // Generous bottom spacer so content clears floating bottom nav bar
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
+}
 }
 

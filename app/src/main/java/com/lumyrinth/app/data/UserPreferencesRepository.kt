@@ -77,4 +77,8 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun resetOnboarding() = context.lumyrinthDataStore.edit {
         it[Keys.onboardingComplete] = false
     }
+
+    suspend fun clearAllPreferences() = context.lumyrinthDataStore.edit {
+        it.clear()
+    }
 }

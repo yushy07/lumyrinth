@@ -43,6 +43,9 @@ import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.navigationBarsPadding
+import com.lumyrinth.app.ui.components.CosmicSectionBackground
+import com.lumyrinth.app.ui.components.SectionTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -273,13 +276,15 @@ fun DetailScreen(
         )
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0B0714))
-            .statusBarsPadding()
-            .padding(horizontal = 20.dp),
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        CosmicSectionBackground(theme = SectionTheme.DETAIL)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp),
+        ) {
         Spacer(modifier = Modifier.height(12.dp))
 
         // Top App Bar: Back Arrow and Favorite Icon
@@ -604,6 +609,7 @@ fun DetailScreen(
                 .fillMaxWidth()
                 .alpha(animProgress.value)
                 .offset { IntOffset(0, ((1f - animProgress.value) * 65).toInt()) }
+                .navigationBarsPadding()
                 .padding(bottom = 16.dp)
         ) {
             PrimaryButton(
@@ -615,6 +621,7 @@ fun DetailScreen(
             )
         }
     }
+}
 }
 
 @Composable

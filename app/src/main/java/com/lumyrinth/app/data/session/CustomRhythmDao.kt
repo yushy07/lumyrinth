@@ -19,4 +19,7 @@ interface CustomRhythmDao {
 
     @Query("DELETE FROM custom_rhythms WHERE id = :id")
     suspend fun delete(id: String)
+
+    @Query("DELETE FROM custom_rhythms")
+    suspend fun clearAll()
 }

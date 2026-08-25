@@ -25,9 +25,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.Icon
@@ -40,16 +43,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.lumyrinth.app.data.UserPreferences
+import com.lumyrinth.app.ui.components.ConfirmDialog
 import com.lumyrinth.app.ui.components.StandardCard
 import com.lumyrinth.app.ui.components.ToggleSwitch
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
+
+import com.lumyrinth.app.ui.components.CosmicSectionBackground
+import com.lumyrinth.app.ui.components.SectionTheme
 
 @Composable
 fun SettingsScreen(
@@ -58,9 +67,30 @@ fun SettingsScreen(
     onToggleSound: (Boolean) -> Unit,
     onToggleReminder: (Boolean) -> Unit,
     onRetakeOnboarding: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit,
+    onOpenTerms: () -> Unit,
+    onClearAllData: () -> Unit,
 ) {
     val context = LocalContext.current
     var permissionDeniedNote by remember { mutableStateOf(false) }
+    var showClearDataDialog by remember { mutableStateOf(false) }
+
+    if (showClearDataDialog) {
+        ConfirmDialog(
+            title = "Clear all data?",
+            message = "This will permanently delete all your session history, custom rhythms, and preferences. This can't be undone.",
+            confirmLabel = "Delete Everything",
+            cancelLabel = "Cancel",
+            isDestructive = true,
+            onConfirm = {
+                showClearDataDialog = false
+                onClearAllData()
+            },
+            onDismiss = {
+                showClearDataDialog = false
+            },
+        )
+    }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -73,13 +103,16 @@ fun SettingsScreen(
             onToggleReminder(false)
         }
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LumyrinthColors.BgBase)
-            .statusBarsPadding()
-            .padding(horizontal = 20.dp),
-    ) {
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        CosmicSectionBackground(theme = SectionTheme.SETTINGS)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp),
+        ) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
@@ -229,9 +262,9 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // About & Reset Section
+            // About & Legal Section
             Text(
-                text = "About",
+                text = "About & Legal",
                 style = LumyrinthTypography.H3,
                 color = LumyrinthColors.TextPrimary,
             )
@@ -242,46 +275,38 @@ fun SettingsScreen(
                 padding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 8.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
+                    // Privacy Policy Row
+                    SettingsActionRow(
+                        icon = Icons.Rounded.Shield,
+                        title = "Privacy Policy",
+                        subtitle = "100% on-device & local-first",
+                        onClick = onOpenPrivacyPolicy,
+                        testTag = "settings_privacy_policy_row",
+                    )
+
+                    // Terms of Service Row
+                    SettingsActionRow(
+                        icon = Icons.Rounded.Description,
+                        title = "Terms of Service",
+                        subtitle = "Wellness notice & terms",
+                        onClick = onOpenTerms,
+                        testTag = "settings_terms_row",
+                    )
+
+                    // Retake Onboarding Row
+                    SettingsActionRow(
+                        icon = Icons.Rounded.Refresh,
+                        title = "Retake onboarding",
+                        subtitle = "Restart introduction flow",
+                        onClick = onRetakeOnboarding,
+                        testTag = "settings_retake_onboarding_row",
+                    )
+
+                    // Version Row
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                role = Role.Button,
-                                onClick = onRetakeOnboarding,
-                            ),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Rounded.Refresh,
-                                contentDescription = null,
-                                tint = LumyrinthColors.AccentPink,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Text(
-                                text = "Retake onboarding",
-                                style = LumyrinthTypography.Body,
-                                color = LumyrinthColors.TextPrimary,
-                            )
-                        }
-
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = LumyrinthColors.TextTertiary,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
+                            .height(52.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
@@ -299,8 +324,126 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // Data Management Section
+            Text(
+                text = "Data Management",
+                style = LumyrinthTypography.H3,
+                color = LumyrinthColors.TextPrimary,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            StandardCard(
+                padding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                role = Role.Button,
+                                onClick = { showClearDataDialog = true },
+                            )
+                            .testTag("settings_clear_data_row"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Rounded.DeleteOutline,
+                                contentDescription = null,
+                                tint = Color(0xFFFB7185),
+                                modifier = Modifier.size(22.dp),
+                            )
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column {
+                                Text(
+                                    text = "Clear all my data",
+                                    style = LumyrinthTypography.Body.copy(
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                                    ),
+                                    color = Color(0xFFFB7185),
+                                )
+                                Text(
+                                    text = "Wipes history, custom rhythms & settings",
+                                    style = LumyrinthTypography.BodySm,
+                                    color = LumyrinthColors.TextSecondary,
+                                )
+                            }
+                        }
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = LumyrinthColors.TextTertiary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+
+            // Generous bottom spacer so content clears floating bottom nav bar
+            Spacer(modifier = Modifier.height(100.dp))
         }
+    }
+}
+}
+
+@Composable
+private fun SettingsActionRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    testTag: String = "",
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Button,
+                onClick = onClick,
+            )
+            .then(if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = LumyrinthColors.AccentPink,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Column {
+                Text(
+                    text = title,
+                    style = LumyrinthTypography.Body,
+                    color = LumyrinthColors.TextPrimary,
+                )
+                Text(
+                    text = subtitle,
+                    style = LumyrinthTypography.BodySm,
+                    color = LumyrinthColors.TextSecondary,
+                )
+            }
+        }
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = null,
+            tint = LumyrinthColors.TextTertiary,
+            modifier = Modifier.size(18.dp),
+        )
     }
 }
 

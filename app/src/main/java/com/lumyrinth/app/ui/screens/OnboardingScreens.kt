@@ -76,6 +76,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -115,6 +116,8 @@ import com.lumyrinth.app.R
 @Composable
 fun WelcomeScreen(
     onGetStarted: () -> Unit,
+    onOpenTerms: () -> Unit = {},
+    onOpenPrivacyPolicy: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val hapticController = remember(context) { HapticController(context) }
@@ -371,7 +374,63 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Non-blocking consent line
+            Row(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = "By continuing, you agree to our ",
+                    style = LumyrinthTypography.Label.copy(
+                        fontSize = 11.sp,
+                        color = LumyrinthColors.TextTertiary,
+                    ),
+                )
+                Text(
+                    text = "Terms",
+                    style = LumyrinthTypography.Label.copy(
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFFDA4AF),
+                    ),
+                    modifier = Modifier
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            role = Role.Button,
+                            onClick = onOpenTerms,
+                        )
+                        .testTag("welcome_terms_link"),
+                )
+                Text(
+                    text = " & ",
+                    style = LumyrinthTypography.Label.copy(
+                        fontSize = 11.sp,
+                        color = LumyrinthColors.TextTertiary,
+                    ),
+                )
+                Text(
+                    text = "Privacy Policy",
+                    style = LumyrinthTypography.Label.copy(
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFFDA4AF),
+                    ),
+                    modifier = Modifier
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            role = Role.Button,
+                            onClick = onOpenPrivacyPolicy,
+                        )
+                        .testTag("welcome_privacy_policy_link"),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             PageIndicatorDots(
                 total = 4,

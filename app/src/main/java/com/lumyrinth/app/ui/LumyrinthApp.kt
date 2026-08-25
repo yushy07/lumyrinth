@@ -5,6 +5,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -48,9 +54,11 @@ import com.lumyrinth.app.ui.screens.FirstSessionScreen
 import com.lumyrinth.app.ui.screens.GoalsScreen
 import com.lumyrinth.app.ui.screens.HomeScreen
 import com.lumyrinth.app.ui.screens.PreferencesScreen
+import com.lumyrinth.app.ui.screens.PrivacyPolicyScreen
 import com.lumyrinth.app.ui.screens.ProgressScreen
 import com.lumyrinth.app.ui.screens.SessionScreen
 import com.lumyrinth.app.ui.screens.SettingsScreen
+import com.lumyrinth.app.ui.screens.TermsScreen
 import com.lumyrinth.app.ui.screens.WelcomeScreen
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import kotlinx.coroutines.launch
@@ -69,6 +77,10 @@ sealed class Screen {
     data object Explore : Screen()
     data object Progress : Screen()
     data object Settings : Screen()
+
+    // Legal
+    data object PrivacyPolicy : Screen()
+    data object Terms : Screen()
 
     // Secondary & Modals
     data class Detail(val rhythm: Rhythm) : Screen()
@@ -177,6 +189,8 @@ fun LumyrinthApp() {
         is Screen.Explore -> BackHandler { currentScreen = Screen.Home }
         is Screen.Progress -> BackHandler { currentScreen = Screen.Home }
         is Screen.Settings -> BackHandler { currentScreen = Screen.Home }
+        is Screen.PrivacyPolicy -> BackHandler { currentScreen = Screen.Settings }
+        is Screen.Terms -> BackHandler { currentScreen = Screen.Settings }
         is Screen.Detail -> BackHandler { currentScreen = Screen.Explore }
         is Screen.CustomRhythm -> BackHandler { currentScreen = Screen.Explore }
         is Screen.Complete -> BackHandler { currentScreen = Screen.Home }
@@ -210,6 +224,16 @@ fun LumyrinthApp() {
         }
     }
 
+    fun getScreenTabIndex(screen: Screen): Int {
+        return when (screen) {
+            is Screen.Home -> 0
+            is Screen.Explore -> 1
+            is Screen.Progress -> 2
+            is Screen.Settings -> 3
+            else -> -1
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -218,7 +242,31 @@ fun LumyrinthApp() {
         AnimatedContent(
             targetState = activeScreen,
             transitionSpec = {
-                fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
+                val initialIndex = getScreenTabIndex(initialState)
+                val targetIndex = getScreenTabIndex(targetState)
+
+                if (initialIndex != -1 && targetIndex != -1) {
+                    // Tab switch transition: slide left/right depending on index direction
+                    if (targetIndex > initialIndex) {
+                        (slideInHorizontally(animationSpec = tween(300)) { width -> width / 3 } +
+                                fadeIn(animationSpec = tween(300))) togetherWith
+                                (slideOutHorizontally(animationSpec = tween(300)) { width -> -width / 3 } +
+                                        fadeOut(animationSpec = tween(250)))
+                    } else {
+                        (slideInHorizontally(animationSpec = tween(300)) { width -> -width / 3 } +
+                                fadeIn(animationSpec = tween(300))) togetherWith
+                                (slideOutHorizontally(animationSpec = tween(300)) { width -> width / 3 } +
+                                        fadeOut(animationSpec = tween(250)))
+                    }
+                } else {
+                    // Secondary screen / Modal push & pop transition
+                    (slideInVertically(animationSpec = tween(320)) { height -> height / 4 } +
+                            fadeIn(animationSpec = tween(300)) +
+                            scaleIn(initialScale = 0.96f, animationSpec = tween(300))) togetherWith
+                            (slideOutVertically(animationSpec = tween(280)) { height -> height / 6 } +
+                                    fadeOut(animationSpec = tween(240)) +
+                                    scaleOut(targetScale = 0.96f, animationSpec = tween(240)))
+                }
             },
             label = "screen_transition",
         ) { target ->
@@ -227,6 +275,8 @@ fun LumyrinthApp() {
                 is Screen.Welcome -> {
                     WelcomeScreen(
                         onGetStarted = { currentScreen = Screen.Goals },
+                        onOpenTerms = { currentScreen = Screen.Terms },
+                        onOpenPrivacyPolicy = { currentScreen = Screen.PrivacyPolicy },
                     )
                 }
 
@@ -334,6 +384,28 @@ fun LumyrinthApp() {
                             scope.launch { prefsRepo.resetOnboarding() }
                             currentScreen = Screen.Welcome
                         },
+                        onOpenPrivacyPolicy = { currentScreen = Screen.PrivacyPolicy },
+                        onOpenTerms = { currentScreen = Screen.Terms },
+                        onClearAllData = {
+                            scope.launch {
+                                sessionRepo.clearAllData()
+                                prefsRepo.clearAllPreferences()
+                                currentScreen = Screen.Welcome
+                            }
+                        },
+                    )
+                }
+
+                // Legal Screens
+                is Screen.PrivacyPolicy -> {
+                    PrivacyPolicyScreen(
+                        onBack = { currentScreen = Screen.Settings },
+                    )
+                }
+
+                is Screen.Terms -> {
+                    TermsScreen(
+                        onBack = { currentScreen = Screen.Settings },
                     )
                 }
 
