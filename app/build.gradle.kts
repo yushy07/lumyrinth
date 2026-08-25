@@ -67,6 +67,18 @@ dependencies {
         implementation(libs.jdom2) {
             because("Upgrade jdom2 to 2.0.6.1 for security and compatibility")
         }
+        implementation(libs.bouncycastle.bcprov) {
+            because("Upgrade bcprov-jdk18on to 1.80 or later")
+        }
+        implementation(libs.netty.codec) {
+            because("Upgrade netty-codec to 4.1.118.Final or later")
+        }
+        implementation(libs.netty.codec.http) {
+            because("Upgrade netty-codec-http to 4.1.118.Final or later")
+        }
+        implementation(libs.netty.codec.http2) {
+            because("Upgrade netty-codec-http2 to 4.1.118.Final or later")
+        }
     }
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)

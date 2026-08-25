@@ -4,10 +4,26 @@ plugins {
     alias(libs.plugins.ksp) apply false
 }
 
+buildscript {
+    configurations.all {
+        resolutionStrategy {
+            force("org.jdom:jdom2:2.0.6.1")
+            force("org.bouncycastle:bcprov-jdk18on:1.80")
+            force("io.netty:netty-codec:4.1.118.Final")
+            force("io.netty:netty-codec-http:4.1.118.Final")
+            force("io.netty:netty-codec-http2:4.1.118.Final")
+        }
+    }
+}
+
 allprojects {
     configurations.all {
         resolutionStrategy {
             force("org.jdom:jdom2:2.0.6.1")
+            force("org.bouncycastle:bcprov-jdk18on:1.80")
+            force("io.netty:netty-codec:4.1.118.Final")
+            force("io.netty:netty-codec-http:4.1.118.Final")
+            force("io.netty:netty-codec-http2:4.1.118.Final")
         }
     }
 }
