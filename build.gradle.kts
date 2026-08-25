@@ -8,10 +8,10 @@ buildscript {
     configurations.all {
         resolutionStrategy {
             force("org.jdom:jdom2:2.0.6.1")
-            force("org.bouncycastle:bcprov-jdk18on:1.80")
-            force("io.netty:netty-codec:4.1.118.Final")
-            force("io.netty:netty-codec-http:4.1.118.Final")
-            force("io.netty:netty-codec-http2:4.1.118.Final")
+            force("org.bouncycastle:bcprov-jdk18on:1.84")
+            force("io.netty:netty-codec:4.1.136.Final")
+            force("io.netty:netty-codec-http:4.1.136.Final")
+            force("io.netty:netty-codec-http2:4.1.136.Final")
         }
     }
 }
@@ -20,10 +20,10 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force("org.jdom:jdom2:2.0.6.1")
-            force("org.bouncycastle:bcprov-jdk18on:1.80")
-            force("io.netty:netty-codec:4.1.118.Final")
-            force("io.netty:netty-codec-http:4.1.118.Final")
-            force("io.netty:netty-codec-http2:4.1.118.Final")
+            force("org.bouncycastle:bcprov-jdk18on:1.84")
+            force("io.netty:netty-codec:4.1.136.Final")
+            force("io.netty:netty-codec-http:4.1.136.Final")
+            force("io.netty:netty-codec-http2:4.1.136.Final")
         }
     }
 }
