@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -13,34 +14,67 @@ private val Context.lumyrinthDataStore by preferencesDataStore(name = "lumyrinth
 
 data class UserPreferences(
     val onboardingComplete: Boolean = false,
-    val hapticsEnabled: Boolean = true,
-    val guidanceSoundsEnabled: Boolean = true,
-    val ambientSound: String = "None",
-    val keepScreenAwake: Boolean = true,
+    val selectedGoals: Set<String> = setOf("relax", "focus", "build_habit"),
+    val hapticGuidanceDefault: Boolean = true,
+    val soundGuidanceDefault: Boolean = true,
+    val dailyReminderEnabled: Boolean = false,
+    val dailyReminderTime: String = "20:00",
+    val favoriteRhythmIds: Set<String> = emptySet(),
 )
 
 class UserPreferencesRepository(private val context: Context) {
     private object Keys {
         val onboardingComplete = booleanPreferencesKey("onboarding_complete")
-        val haptics = booleanPreferencesKey("haptics_enabled")
-        val guidanceSounds = booleanPreferencesKey("guidance_sounds_enabled")
-        val ambientSound = stringPreferencesKey("ambient_sound")
-        val keepScreenAwake = booleanPreferencesKey("keep_screen_awake")
+        val selectedGoals = stringSetPreferencesKey("selected_goals")
+        val haptics = booleanPreferencesKey("haptics_guidance_default")
+        val sound = booleanPreferencesKey("sound_guidance_default")
+        val dailyReminderEnabled = booleanPreferencesKey("daily_reminder_enabled")
+        val dailyReminderTime = stringPreferencesKey("daily_reminder_time")
+        val favoriteRhythmIds = stringSetPreferencesKey("favorite_rhythm_ids")
     }
 
     val preferences: Flow<UserPreferences> = context.lumyrinthDataStore.data.map { stored ->
         UserPreferences(
             onboardingComplete = stored[Keys.onboardingComplete] ?: false,
-            hapticsEnabled = stored[Keys.haptics] ?: true,
-            guidanceSoundsEnabled = stored[Keys.guidanceSounds] ?: true,
-            ambientSound = stored[Keys.ambientSound] ?: "None",
-            keepScreenAwake = stored[Keys.keepScreenAwake] ?: true,
+            selectedGoals = stored[Keys.selectedGoals] ?: setOf("relax", "focus", "build_habit"),
+            hapticGuidanceDefault = stored[Keys.haptics] ?: true,
+            soundGuidanceDefault = stored[Keys.sound] ?: true,
+            dailyReminderEnabled = stored[Keys.dailyReminderEnabled] ?: false,
+            dailyReminderTime = stored[Keys.dailyReminderTime] ?: "20:00",
+            favoriteRhythmIds = stored[Keys.favoriteRhythmIds] ?: emptySet(),
         )
     }
 
-    suspend fun completeOnboarding() = context.lumyrinthDataStore.edit { it[Keys.onboardingComplete] = true }
-    suspend fun setHaptics(enabled: Boolean) = context.lumyrinthDataStore.edit { it[Keys.haptics] = enabled }
-    suspend fun setGuidanceSounds(enabled: Boolean) = context.lumyrinthDataStore.edit { it[Keys.guidanceSounds] = enabled }
-    suspend fun setAmbientSound(sound: String) = context.lumyrinthDataStore.edit { it[Keys.ambientSound] = sound }
-    suspend fun setKeepScreenAwake(enabled: Boolean) = context.lumyrinthDataStore.edit { it[Keys.keepScreenAwake] = enabled }
+    suspend fun setOnboardingComplete(complete: Boolean) = context.lumyrinthDataStore.edit {
+        it[Keys.onboardingComplete] = complete
+    }
+
+    suspend fun setSelectedGoals(goals: Set<String>) = context.lumyrinthDataStore.edit {
+        it[Keys.selectedGoals] = goals
+    }
+
+    suspend fun setHapticGuidanceDefault(enabled: Boolean) = context.lumyrinthDataStore.edit {
+        it[Keys.haptics] = enabled
+    }
+
+    suspend fun setSoundGuidanceDefault(enabled: Boolean) = context.lumyrinthDataStore.edit {
+        it[Keys.sound] = enabled
+    }
+
+    suspend fun setDailyReminderEnabled(enabled: Boolean) = context.lumyrinthDataStore.edit {
+        it[Keys.dailyReminderEnabled] = enabled
+    }
+
+    suspend fun setDailyReminderTime(time: String) = context.lumyrinthDataStore.edit {
+        it[Keys.dailyReminderTime] = time
+    }
+
+    suspend fun toggleFavorite(rhythmId: String) = context.lumyrinthDataStore.edit { prefs ->
+        val current = prefs[Keys.favoriteRhythmIds] ?: emptySet()
+        prefs[Keys.favoriteRhythmIds] = if (rhythmId in current) current - rhythmId else current + rhythmId
+    }
+
+    suspend fun resetOnboarding() = context.lumyrinthDataStore.edit {
+        it[Keys.onboardingComplete] = false
+    }
 }

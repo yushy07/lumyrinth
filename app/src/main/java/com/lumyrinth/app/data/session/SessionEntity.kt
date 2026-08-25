@@ -6,13 +6,15 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "breathing_sessions")
 data class SessionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val exerciseId: String,
-    val exerciseName: String,
+    val rhythmId: String,
+    val rhythmNameSnapshot: String,
+    val dateIso: String,
     val startedAtEpochMillis: Long,
-    val completedAtEpochMillis: Long,
-    val targetDurationMillis: Long,
-    val actualDurationMillis: Long,
+    val completedNaturally: Boolean,
+    val durationMinutesPlanned: Int,
+    val durationMinutesActual: Int,
     val cyclesCompleted: Int,
-    val completed: Boolean,
-    val feeling: String? = null,
+    val soundOn: Boolean,
+    val hapticsOn: Boolean,
+    val mood: String? = null,
 )

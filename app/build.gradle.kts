@@ -25,6 +25,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    signingConfigs {
+        create("debugConfig") {
+            storeFile = file("${rootDir}/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
     val signingProperties = Properties()
     val signingPropertiesFile = rootProject.file("keystore.properties")
     if (signingPropertiesFile.exists()) {
@@ -42,6 +50,9 @@ android {
         }
     }
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("debugConfig")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

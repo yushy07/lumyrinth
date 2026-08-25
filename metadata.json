@@ -1,0 +1,6 @@
+{
+  "name": "Lumyrinth",
+  "description": "Mindful breathing and labyrinth meditation app with ambient audio, haptic guidance, and custom rhythms",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

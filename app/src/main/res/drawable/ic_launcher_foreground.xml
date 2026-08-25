@@ -1,23 +1,32 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    
+    <!-- Outer Glow Ring (Purple/Pink) -->
     <path
         android:pathData="M54,26 A28,28 0 1 1 53.9,26 Z"
         android:strokeWidth="2.5"
         android:strokeColor="#66A855F7"
         android:fillColor="@android:color/transparent" />
+
+    <!-- Middle Ring (Pink/Orange) -->
     <path
         android:pathData="M54,34 A20,20 0 1 1 53.9,34 Z"
         android:strokeWidth="3.0"
         android:strokeColor="#B3EC4899"
         android:fillColor="@android:color/transparent" />
+
+    <!-- Inner Ring (Orange) -->
     <path
         android:pathData="M54,42 A12,12 0 1 1 53.9,42 Z"
         android:strokeWidth="3.5"
         android:strokeColor="#F97316"
         android:fillColor="@android:color/transparent" />
+
+    <!-- Bright Core (Warm Yellow / White) -->
     <path
         android:pathData="M54,48 A6,6 0 1 1 53.9,48 Z"
         android:fillColor="#FFF5EB" />
