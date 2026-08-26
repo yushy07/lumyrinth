@@ -55,6 +55,10 @@ class SettingsViewModel(
         }
     }
 
+    fun setAppTheme(theme: String) {
+        viewModelScope.launch { prefsRepo.setAppTheme(theme) }
+    }
+
     fun resetOnboarding() {
         viewModelScope.launch { prefsRepo.resetOnboarding() }
     }

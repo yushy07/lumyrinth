@@ -59,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.lumyrinth.app.data.UserPreferences
 import com.lumyrinth.app.BuildConfig
@@ -71,6 +72,14 @@ import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import com.lumyrinth.app.ui.components.CosmicSectionBackground
 import com.lumyrinth.app.ui.components.SectionTheme
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Check
+import com.lumyrinth.app.ui.theme.AppColorTheme
+import com.lumyrinth.app.ui.theme.LumyrinthThemeTokens
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -80,6 +89,7 @@ fun SettingsScreen(
     onToggleReminder: (Boolean) -> Unit,
     onReminderTimeChange: (String) -> Unit,
     onAmbientSoundscapeChange: (String) -> Unit,
+    onThemeChange: (String) -> Unit = {},
     onRetakeOnboarding: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onOpenTerms: () -> Unit,
@@ -232,6 +242,125 @@ fun SettingsScreen(
                             style = LumyrinthTypography.BodySm,
                             color = LumyrinthColors.TextSecondary,
                         )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // Color Theme Palette Section
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "App Color Theme",
+                    style = LumyrinthTypography.H3,
+                    color = LumyrinthColors.TextPrimary,
+                )
+                Text(
+                    text = AppColorTheme.fromId(userPreferences.appTheme).displayName,
+                    style = LumyrinthTypography.Label.copy(
+                        color = LumyrinthThemeTokens.palette.primaryAccent,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    ),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            StandardCard(
+                padding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Curated ambient palettes crafted for circadian mindfulness and sensory rest.",
+                        style = LumyrinthTypography.BodySm,
+                        color = LumyrinthColors.TextSecondary,
+                        modifier = Modifier.padding(bottom = 12.dp),
+                    )
+
+                    AppColorTheme.entries.forEach { theme ->
+                        val isSelected = userPreferences.appTheme == theme.id
+                        val borderCol = if (isSelected) theme.primaryHex else Color(0x1AFFFFFF)
+                        val bgCol = if (isSelected) theme.primaryHex.copy(alpha = 0.15f) else Color(0x0AFFFFFF)
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(bgCol)
+                                .border(1.dp, borderCol, RoundedCornerShape(14.dp))
+                                .clickable(role = Role.RadioButton) { onThemeChange(theme.id) }
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    // Color swatch dot pair
+                                    Row(horizontalArrangement = Arrangement.spacedBy((-6).dp)) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clip(CircleShape)
+                                                .background(theme.primaryHex)
+                                                .border(2.dp, Color(0xFF0B0710), CircleShape),
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clip(CircleShape)
+                                                .background(theme.secondaryHex)
+                                                .border(2.dp, Color(0xFF0B0710), CircleShape),
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(14.dp))
+
+                                    Column {
+                                        Text(
+                                            text = theme.displayName,
+                                            style = LumyrinthTypography.Body.copy(
+                                                fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium,
+                                            ),
+                                            color = if (isSelected) Color.White else LumyrinthColors.TextPrimary,
+                                        )
+                                        Text(
+                                            text = theme.description,
+                                            style = LumyrinthTypography.Label.copy(
+                                                fontSize = 11.sp,
+                                                color = LumyrinthColors.TextSecondary,
+                                            ),
+                                        )
+                                    }
+                                }
+
+                                if (isSelected) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(26.dp)
+                                            .clip(CircleShape)
+                                            .background(theme.primaryHex),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Check,
+                                            contentDescription = "Selected",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(16.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

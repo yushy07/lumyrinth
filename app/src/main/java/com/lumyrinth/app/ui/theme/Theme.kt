@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
@@ -188,7 +189,38 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun LumyrinthTheme(content: @Composable () -> Unit) {
+fun LumyrinthTheme(
+    appTheme: String = "twilight",
+    content: @Composable () -> Unit,
+) {
+    val selectedTheme = AppColorTheme.fromId(appTheme)
+    val palette = when (selectedTheme) {
+        AppColorTheme.TWILIGHT -> TwilightPalette
+        AppColorTheme.SAGE -> SagePalette
+        AppColorTheme.AMBER -> AmberPalette
+        AppColorTheme.OCEAN -> OceanPalette
+    }
+
+    val dynamicColorScheme = darkColorScheme(
+        primary = palette.primaryAccent,
+        onPrimary = palette.textPrimary,
+        secondary = palette.secondaryAccent,
+        onSecondary = palette.textPrimary,
+        tertiary = palette.warmAccent,
+        onTertiary = palette.textPrimary,
+        background = palette.bgBase,
+        onBackground = palette.textPrimary,
+        surface = palette.surfaceCard,
+        onSurface = palette.textPrimary,
+        surfaceVariant = palette.surfaceCardAlt,
+        onSurfaceVariant = palette.textSecondary,
+        outline = palette.borderMedium,
+        outlineVariant = palette.borderSubtle,
+        error = androidx.compose.ui.graphics.Color(0xFFEF4444),
+        onError = androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+        surfaceContainer = palette.bgElevated,
+    )
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -200,9 +232,11 @@ fun LumyrinthTheme(content: @Composable () -> Unit) {
         }
     }
 
-    MaterialTheme(
-        colorScheme = DarkColorScheme,
-        typography = AppTypography,
-        content = content,
-    )
+    CompositionLocalProvider(LocalAppPalette provides palette) {
+        MaterialTheme(
+            colorScheme = dynamicColorScheme,
+            typography = AppTypography,
+            content = content,
+        )
+    }
 }

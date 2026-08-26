@@ -23,6 +23,7 @@ data class UserPreferences(
     val dailyReminderEnabled: Boolean = false,
     val dailyReminderTime: String = "20:00",
     val favoriteRhythmIds: Set<String> = emptySet(),
+    val appTheme: String = "twilight",
 )
 
 class UserPreferencesRepository(private val context: Context) {
@@ -36,6 +37,7 @@ class UserPreferencesRepository(private val context: Context) {
         val dailyReminderEnabled = booleanPreferencesKey("daily_reminder_enabled")
         val dailyReminderTime = stringPreferencesKey("daily_reminder_time")
         val favoriteRhythmIds = stringSetPreferencesKey("favorite_rhythm_ids")
+        val appTheme = stringPreferencesKey("app_theme")
     }
 
     val preferences: Flow<UserPreferences> = context.lumyrinthDataStore.data.map { stored ->
@@ -49,6 +51,7 @@ class UserPreferencesRepository(private val context: Context) {
             dailyReminderEnabled = stored[Keys.dailyReminderEnabled] ?: false,
             dailyReminderTime = stored[Keys.dailyReminderTime] ?: "20:00",
             favoriteRhythmIds = stored[Keys.favoriteRhythmIds] ?: emptySet(),
+            appTheme = stored[Keys.appTheme] ?: "twilight",
         )
     }
 
@@ -87,6 +90,10 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun toggleFavorite(rhythmId: String) = context.lumyrinthDataStore.edit { prefs ->
         val current = prefs[Keys.favoriteRhythmIds] ?: emptySet()
         prefs[Keys.favoriteRhythmIds] = if (rhythmId in current) current - rhythmId else current + rhythmId
+    }
+
+    suspend fun setAppTheme(theme: String) = context.lumyrinthDataStore.edit {
+        it[Keys.appTheme] = theme
     }
 
     suspend fun resetOnboarding() = context.lumyrinthDataStore.edit {

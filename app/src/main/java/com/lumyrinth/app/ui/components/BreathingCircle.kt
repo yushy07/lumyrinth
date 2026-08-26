@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.domain.BreathPhase
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.ui.theme.LumyrinthColors
+import com.lumyrinth.app.ui.theme.LumyrinthThemeTokens
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import kotlinx.coroutines.delay
 import kotlin.math.PI
@@ -180,36 +181,38 @@ fun BreathingCircle(
         }
     }
 
-    // Harmonic phase color dynamic aura
+    val palette = LumyrinthThemeTokens.palette
+
+    // Harmonic phase color dynamic aura reflecting the active app theme
     val phaseAuraColors = when (activePhase) {
         BreathPhase.INHALE -> listOf(
-            Color(0xFFC084FC).copy(alpha = 0.40f * glowIntensity),
-            Color(0xFF9333EA).copy(alpha = 0.25f * glowIntensity),
-            Color(0xFF4C1D95).copy(alpha = 0.12f * glowIntensity),
+            palette.phaseInhale.copy(alpha = 0.45f * glowIntensity),
+            palette.primaryAccent.copy(alpha = 0.28f * glowIntensity),
+            palette.primaryAccent.copy(alpha = 0.12f * glowIntensity),
             Color.Transparent,
         )
         BreathPhase.HOLD_AFTER_INHALE -> listOf(
-            Color(0xFFF472B6).copy(alpha = 0.45f * glowIntensity),
-            Color(0xFFDB2777).copy(alpha = 0.28f * glowIntensity),
-            Color(0xFF831843).copy(alpha = 0.14f * glowIntensity),
+            palette.phaseHold1.copy(alpha = 0.45f * glowIntensity),
+            palette.secondaryAccent.copy(alpha = 0.28f * glowIntensity),
+            palette.secondaryAccent.copy(alpha = 0.14f * glowIntensity),
             Color.Transparent,
         )
         BreathPhase.EXHALE -> listOf(
-            Color(0xFFFB923C).copy(alpha = 0.40f * glowIntensity),
-            Color(0xFFEA580C).copy(alpha = 0.25f * glowIntensity),
-            Color(0xFF7C2D12).copy(alpha = 0.12f * glowIntensity),
+            palette.phaseExhale.copy(alpha = 0.45f * glowIntensity),
+            palette.warmAccent.copy(alpha = 0.28f * glowIntensity),
+            palette.warmAccent.copy(alpha = 0.12f * glowIntensity),
             Color.Transparent,
         )
         BreathPhase.HOLD_AFTER_EXHALE -> listOf(
-            Color(0xFFA78BFA).copy(alpha = 0.35f * glowIntensity),
-            Color(0xFF7C3AED).copy(alpha = 0.22f * glowIntensity),
-            Color(0xFF4C1D95).copy(alpha = 0.10f * glowIntensity),
+            palette.phaseHold2.copy(alpha = 0.38f * glowIntensity),
+            palette.primaryAccent.copy(alpha = 0.22f * glowIntensity),
+            palette.primaryAccent.copy(alpha = 0.10f * glowIntensity),
             Color.Transparent,
         )
         null -> listOf(
-            Color(0xFFB535C2).copy(alpha = 0.35f * glowIntensity),
-            Color(0xFF6B21A8).copy(alpha = 0.22f * glowIntensity),
-            Color(0xFF3B0764).copy(alpha = 0.12f * glowIntensity),
+            palette.primaryAccent.copy(alpha = 0.38f * glowIntensity),
+            palette.secondaryAccent.copy(alpha = 0.22f * glowIntensity),
+            palette.primaryAccent.copy(alpha = 0.12f * glowIntensity),
             Color.Transparent,
         )
     }
@@ -315,11 +318,10 @@ fun BreathingCircle(
                         drawCircle(
                             brush = Brush.sweepGradient(
                                 listOf(
-                                    Color(0xFFEC4899),
-                                    Color(0xFFA855F7),
-                                    Color(0xFFE879F9),
-                                    Color(0xFFF43F5E),
-                                    Color(0xFFEC4899),
+                                    palette.secondaryAccent,
+                                    palette.primaryAccent,
+                                    palette.warmAccent,
+                                    palette.secondaryAccent,
                                 )
                             ),
                             radius = radius,
@@ -328,14 +330,14 @@ fun BreathingCircle(
                             alpha = (0.92f * glowIntensity).coerceIn(0f, 1f),
                         )
                         drawCircle(
-                            color = Color(0xFFD946EF).copy(alpha = 0.35f * glowIntensity),
+                            color = palette.secondaryAccent.copy(alpha = 0.35f * glowIntensity),
                             radius = radius,
                             center = center,
                             style = Stroke(width = 8f),
                         )
                     } else {
                         drawCircle(
-                            color = Color(0xFFA855F7).copy(alpha = ringAlpha * 0.25f),
+                            color = palette.primaryAccent.copy(alpha = ringAlpha * 0.25f),
                             radius = radius,
                             center = center,
                             style = Stroke(
@@ -697,6 +699,8 @@ fun BreathingPresetSelector(
     onSelectRhythm: (Rhythm) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val palette = LumyrinthThemeTokens.palette
+
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -705,8 +709,8 @@ fun BreathingPresetSelector(
         items(presets.size) { index ->
             val preset = presets[index]
             val isSelected = preset.id == selectedRhythm.id
-            val activeBorder = if (isSelected) Color(0xFFE879F9) else Color(0x22FFFFFF)
-            val activeBg = if (isSelected) Color(0x33A855F7) else Color(0x14FFFFFF)
+            val activeBorder = if (isSelected) palette.primaryAccent else palette.borderSubtle
+            val activeBg = if (isSelected) palette.primaryAccent.copy(alpha = 0.20f) else palette.surfaceCard.copy(alpha = 0.50f)
 
             Box(
                 modifier = Modifier
@@ -729,7 +733,7 @@ fun BreathingPresetSelector(
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             fontSize = 13.sp,
                         ),
-                        color = if (isSelected) Color.White else LumyrinthColors.TextSecondary,
+                        color = if (isSelected) palette.textPrimary else palette.textSecondary,
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
@@ -738,7 +742,7 @@ fun BreathingPresetSelector(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                         ),
-                        color = if (isSelected) Color(0xFFF472B6) else Color(0x88FFFFFF),
+                        color = if (isSelected) palette.secondaryAccent else palette.textTertiary,
                     )
                 }
             }

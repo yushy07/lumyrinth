@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.ui.theme.LumyrinthColors
+import com.lumyrinth.app.ui.theme.LumyrinthThemeTokens
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 
 enum class AppTab(val label: String, val icon: ImageVector) {
@@ -53,10 +54,12 @@ fun BottomTabBar(
     onTabChange: (AppTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val palette = LumyrinthThemeTokens.palette
+
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF0C0816))
+            .background(palette.bgElevated.copy(alpha = 0.96f))
             .navigationBarsPadding(),
     ) {
         // Thin top divider
@@ -64,7 +67,7 @@ fun BottomTabBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(Color(0x1FFFFFFF))
+                .background(palette.borderSubtle)
         )
 
         Row(
@@ -80,7 +83,7 @@ fun BottomTabBar(
             AppTab.entries.forEach { tab ->
                 val isActive = tab == activeTab
                 val contentColor by animateColorAsState(
-                    targetValue = if (isActive) Color(0xFFE879F9) else Color(0x73FFFFFF),
+                    targetValue = if (isActive) palette.secondaryAccent else palette.textTertiary,
                     label = "tab_color_${tab.name}",
                 )
                 val iconScale by animateFloatAsState(
@@ -130,6 +133,8 @@ fun PageIndicatorDots(
     activeIndex: Int = 0,
     modifier: Modifier = Modifier,
 ) {
+    val palette = LumyrinthThemeTokens.palette
+
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -142,8 +147,8 @@ fun PageIndicatorDots(
                     .size(if (isActive) 7.dp else 6.dp)
                     .clip(CircleShape)
                     .background(
-                        if (isActive) Color(0xFFD946EF)
-                        else Color(0x33FFFFFF)
+                        if (isActive) palette.secondaryAccent
+                        else palette.borderMedium
                     )
             )
         }

@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.ui.theme.LumyrinthColors
+import com.lumyrinth.app.ui.theme.LumyrinthThemeTokens
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import kotlin.math.PI
 import kotlin.math.cos
@@ -68,8 +69,8 @@ fun StandardCard(
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(20.dp),
     cornerRadius: Dp = 20.dp,
-    backgroundColor: Color = LumyrinthColors.SurfaceCard,
-    borderColor: Color = LumyrinthColors.BorderSubtle,
+    backgroundColor: Color = LumyrinthThemeTokens.palette.surfaceCard,
+    borderColor: Color = LumyrinthThemeTokens.palette.borderSubtle,
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
@@ -113,11 +114,13 @@ fun FeatureCard(
         label = "feature_card_scale",
     )
 
+    val palette = LumyrinthThemeTokens.palette
+
     val cardBg = Brush.verticalGradient(
         listOf(
-            Color(0xFF261048),
-            Color(0xFF160B2A),
-            Color(0xFF1C0A2A),
+            palette.bgElevated,
+            palette.surfaceCard,
+            palette.bgBase,
         )
     )
 
@@ -128,8 +131,8 @@ fun FeatureCard(
             .shadow(
                 elevation = 20.dp,
                 shape = RoundedCornerShape(26.dp),
-                spotColor = Color(0xFFC026D3).copy(alpha = 0.35f),
-                ambientColor = Color(0xFF7E22CE).copy(alpha = 0.35f),
+                spotColor = palette.primaryAccent.copy(alpha = 0.35f),
+                ambientColor = palette.secondaryAccent.copy(alpha = 0.35f),
             )
             .clip(RoundedCornerShape(26.dp))
             .background(cardBg)
@@ -137,8 +140,8 @@ fun FeatureCard(
                 1.dp,
                 Brush.verticalGradient(
                     listOf(
-                        Color(0x80C084FC),
-                        Color(0x33F43F5E),
+                        palette.primaryAccent.copy(alpha = 0.50f),
+                        palette.secondaryAccent.copy(alpha = 0.20f),
                     )
                 ),
                 RoundedCornerShape(26.dp),

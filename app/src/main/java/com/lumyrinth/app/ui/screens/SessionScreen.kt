@@ -299,247 +299,497 @@ fun SessionScreen(
         label = "session_smooth_progress",
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF07040D))
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        // Top Bar Controls
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+
+    if (isLandscape) {
+        // Landscape / Tablet Split Layout
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .fillMaxSize()
+                .background(Color(0xFF07040D))
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Close 'X' Button
-            Box(
+            // Left Pane: Breathing Circle & Phase
+            Column(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color(0x22FFFFFF))
-                    .clickable(role = Role.Button, onClick = { showConfirmClose = true }),
-                contentAlignment = Alignment.Center,
+                    .weight(1.1f)
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.Close,
-                    contentDescription = "Close Session",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-
-            // Right Quick Actions
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                // Music / Ambient sound toggle button
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(if (soundOn) Color(0x33A855F7) else Color(0x1AFFFFFF))
-                        .border(1.dp, if (soundOn) Color(0x55C084FC) else Color(0x11FFFFFF), CircleShape)
-                        .clickable(role = Role.Button, onClick = { soundOn = !soundOn }),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = if (soundOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
-                        contentDescription = if (soundOn) "Disable guidance tones" else "Enable guidance tones",
-                        tint = if (soundOn) Color(0xFFF472B6) else Color(0x88FFFFFF),
-                        modifier = Modifier.size(20.dp),
+                // Phase Title
+                AnimatedContent(
+                    targetState = currentPhase,
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(220, easing = LinearEasing)) +
+                                slideInVertically(
+                                    initialOffsetY = { it / 3 },
+                                    animationSpec = tween(220, easing = FastOutSlowInEasing)
+                                ))
+                            .togetherWith(
+                                fadeOut(animationSpec = tween(180, easing = LinearEasing)) +
+                                        slideOutVertically(
+                                            targetOffsetY = { -it / 3 },
+                                            animationSpec = tween(180, easing = FastOutSlowInEasing)
+                                        )
+                            )
+                    },
+                    label = "phase_label_crossfade_land",
+                ) { phase ->
+                    Text(
+                        text = phase.label.uppercase(),
+                        style = LumyrinthTypography.Label.copy(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 4.sp,
+                        ),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                     )
                 }
 
-                // Soundscape / Fine Tune Settings button
+                Spacer(modifier = Modifier.height(16.dp))
+
+                BreathingCircle(
+                    circleSize = adaptiveCircleSize,
+                    centerContent = OrbCenterContent.Countdown(phaseSecondsRemaining),
+                    animationState = OrbAnimationState.Breathing(
+                        scale = currentOrbScale,
+                        phase = currentPhase,
+                        isPaused = isPaused,
+                    ),
+                )
+            }
+
+            // Right Pane: Info & Controls
+            Column(
+                modifier = Modifier
+                    .weight(0.9f)
+                    .fillMaxHeight()
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                // Top Bar
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x22FFFFFF))
+                            .clickable(role = Role.Button, onClick = { showConfirmClose = true }),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = "Close Session",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(if (soundOn) Color(0x33A855F7) else Color(0x1AFFFFFF))
+                                .border(1.dp, if (soundOn) Color(0x55C084FC) else Color(0x11FFFFFF), CircleShape)
+                                .clickable(role = Role.Button, onClick = { soundOn = !soundOn }),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = if (soundOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
+                                contentDescription = if (soundOn) "Disable guidance tones" else "Enable guidance tones",
+                                tint = if (soundOn) Color(0xFFF472B6) else Color(0x88FFFFFF),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(Color(0x22FFFFFF))
+                                .clickable(role = Role.Button, onClick = { showQuickSettings = true }),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.GraphicEq,
+                                contentDescription = "Soundscape & Guidance Settings",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                }
+
+                // Middle Info
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color(0x22FFFFFF))
+                            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
+                            .padding(horizontal = 14.dp, vertical = 6.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "${currentRhythm.name} · ${currentRhythm.patternCode.replace(" Breathing", "")}",
+                            style = LumyrinthTypography.Label.copy(
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                            ),
+                            color = Color(0xFFF472B6),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = String.format(java.util.Locale.getDefault(), "%d:%02d", remainingMinutes, remainingSecs),
+                            style = LumyrinthTypography.Body.copy(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                            ),
+                            color = Color.White,
+                        )
+                        Text(
+                            text = "remaining",
+                            style = LumyrinthTypography.Body.copy(
+                                fontSize = 14.sp,
+                                color = Color(0x99FFFFFF),
+                            ),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .height(5.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(Color(0x2AFFFFFF)),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(smoothProgress)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color(0xFFA855F7),
+                                            Color(0xFFEC4899),
+                                            Color(0xFFFB923C),
+                                        )
+                                    )
+                                ),
+                        )
+                    }
+                }
+
+                // Controls
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CircularControlItem(
+                        icon = if (soundOn) Icons.AutoMirrored.Rounded.VolumeUp else Icons.AutoMirrored.Rounded.VolumeOff,
+                        contentDescription = if (soundOn) "Mute" else "Unmute",
+                        isActive = soundOn,
+                        onClick = { soundOn = !soundOn },
+                    )
+
+                    CenterPlayPauseControl(
+                        isPaused = isPaused,
+                        onClick = {
+                            if (isPaused) {
+                                val now = SystemClock.elapsedRealtime()
+                                if (pauseStartRealtime > 0L) {
+                                    accumulatedPauseMillis += (now - pauseStartRealtime).coerceAtLeast(0L)
+                                    pauseStartRealtime = 0L
+                                }
+                                isPaused = false
+                            } else {
+                                pauseStartRealtime = SystemClock.elapsedRealtime()
+                                isPaused = true
+                            }
+                        },
+                    )
+
+                    CircularControlItem(
+                        icon = Icons.Rounded.Vibration,
+                        contentDescription = if (hapticsOn) "Disable Haptics" else "Enable Haptics",
+                        isActive = hapticsOn,
+                        onClick = { hapticsOn = !hapticsOn },
+                    )
+                }
+            }
+        }
+    } else {
+        // Portrait Layout
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF07040D))
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Top Bar Controls
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Close 'X' Button
                 Box(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
                         .background(Color(0x22FFFFFF))
-                        .clickable(role = Role.Button, onClick = { showQuickSettings = true }),
+                        .clickable(role = Role.Button, onClick = { showConfirmClose = true }),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.GraphicEq,
-                        contentDescription = "Soundscape & Guidance Settings",
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "Close Session",
                         tint = Color.White,
                         modifier = Modifier.size(20.dp),
                     )
                 }
+
+                // Right Quick Actions
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    // Music / Ambient sound toggle button
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(if (soundOn) Color(0x33A855F7) else Color(0x1AFFFFFF))
+                            .border(1.dp, if (soundOn) Color(0x55C084FC) else Color(0x11FFFFFF), CircleShape)
+                            .clickable(role = Role.Button, onClick = { soundOn = !soundOn }),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = if (soundOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
+                            contentDescription = if (soundOn) "Disable guidance tones" else "Enable guidance tones",
+                            tint = if (soundOn) Color(0xFFF472B6) else Color(0x88FFFFFF),
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+
+                    // Soundscape / Fine Tune Settings button
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(Color(0x22FFFFFF))
+                            .clickable(role = Role.Button, onClick = { showQuickSettings = true }),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.GraphicEq,
+                            contentDescription = "Soundscape & Guidance Settings",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.weight(0.3f))
+            Spacer(modifier = Modifier.weight(0.3f))
 
-        // The active rhythm is locked for the full session.
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0x22FFFFFF))
-                .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
-                .semantics { stateDescription = "Active rhythm: ${currentRhythm.name}" }
-                .padding(horizontal = 14.dp, vertical = 6.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "${currentRhythm.name} · ${currentRhythm.patternCode.replace(" Breathing", "")}",
-                style = LumyrinthTypography.Label.copy(
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                ),
-                color = Color(0xFFF472B6),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Phase Title with Soft Crossfade / Slide Transition (ANIMATIONS.md Section 3)
-        AnimatedContent(
-            targetState = currentPhase,
-            transitionSpec = {
-                (fadeIn(animationSpec = tween(220, easing = LinearEasing)) +
-                        slideInVertically(
-                            initialOffsetY = { it / 3 },
-                            animationSpec = tween(220, easing = FastOutSlowInEasing)
-                        ))
-                    .togetherWith(
-                        fadeOut(animationSpec = tween(180, easing = LinearEasing)) +
-                                slideOutVertically(
-                                    targetOffsetY = { -it / 3 },
-                                    animationSpec = tween(180, easing = FastOutSlowInEasing)
-                                )
-                    )
-            },
-            label = "phase_label_crossfade",
-        ) { phase ->
-            Text(
-                text = phase.label.uppercase(),
-                style = LumyrinthTypography.Label.copy(
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 4.sp,
-                ),
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Center BreathingCircle with Real-Time Scale & Countdown
-        BreathingCircle(
-            circleSize = adaptiveCircleSize,
-            centerContent = OrbCenterContent.Countdown(phaseSecondsRemaining),
-            animationState = OrbAnimationState.Breathing(
-                scale = currentOrbScale,
-                phase = currentPhase,
-                isPaused = isPaused,
-            ),
-        )
-
-        Spacer(modifier = Modifier.height(36.dp))
-
-        // Time remaining text: e.g. "2:46 remaining"
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = String.format(java.util.Locale.getDefault(), "%d:%02d", remainingMinutes, remainingSecs),
-                style = LumyrinthTypography.Body.copy(
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                ),
-                color = Color.White,
-            )
-            Text(
-                text = "remaining",
-                style = LumyrinthTypography.Body.copy(
-                    fontSize = 14.sp,
-                    color = Color(0x99FFFFFF),
-                ),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Sleek Gradient Progress Bar
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .height(5.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(Color(0x2AFFFFFF)),
-        ) {
+            // The active rhythm is locked for the full session.
             Box(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(smoothProgress)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(
-                                Color(0xFFA855F7), // Purple
-                                Color(0xFFEC4899), // Pink
-                                Color(0xFFFB923C), // Orange/Amber
-                            )
-                        )
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0x22FFFFFF))
+                    .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
+                    .semantics { stateDescription = "Active rhythm: ${currentRhythm.name}" }
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "${currentRhythm.name} · ${currentRhythm.patternCode.replace(" Breathing", "")}",
+                    style = LumyrinthTypography.Label.copy(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
                     ),
-            )
-        }
+                    color = Color(0xFFF472B6),
+                )
+            }
 
-        Spacer(modifier = Modifier.weight(0.7f))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Bottom Controls Row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Mute / Unmute Volume Button
-            CircularControlItem(
-                icon = if (soundOn) Icons.AutoMirrored.Rounded.VolumeUp else Icons.AutoMirrored.Rounded.VolumeOff,
-                contentDescription = if (soundOn) "Mute" else "Unmute",
-                isActive = soundOn,
-                onClick = { soundOn = !soundOn },
-            )
-
-            // Large Center Pause / Resume Button with Glowing Gradient Ring Border
-            CenterPlayPauseControl(
-                isPaused = isPaused,
-                onClick = {
-                    if (isPaused) {
-                        // Resuming
-                        val now = SystemClock.elapsedRealtime()
-                        if (pauseStartRealtime > 0L) {
-                            accumulatedPauseMillis += (now - pauseStartRealtime).coerceAtLeast(0L)
-                            pauseStartRealtime = 0L
-                        }
-                        isPaused = false
-                    } else {
-                        // Pausing
-                        pauseStartRealtime = SystemClock.elapsedRealtime()
-                        isPaused = true
-                    }
+            // Phase Title with Soft Crossfade / Slide Transition (ANIMATIONS.md Section 3)
+            AnimatedContent(
+                targetState = currentPhase,
+                transitionSpec = {
+                    (fadeIn(animationSpec = tween(220, easing = LinearEasing)) +
+                            slideInVertically(
+                                initialOffsetY = { it / 3 },
+                                animationSpec = tween(220, easing = FastOutSlowInEasing)
+                            ))
+                        .togetherWith(
+                            fadeOut(animationSpec = tween(180, easing = LinearEasing)) +
+                                    slideOutVertically(
+                                        targetOffsetY = { -it / 3 },
+                                        animationSpec = tween(180, easing = FastOutSlowInEasing)
+                                    )
+                        )
                 },
+                label = "phase_label_crossfade",
+            ) { phase ->
+                Text(
+                    text = phase.label.uppercase(),
+                    style = LumyrinthTypography.Label.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 4.sp,
+                    ),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Center BreathingCircle with Real-Time Scale & Countdown
+            BreathingCircle(
+                circleSize = adaptiveCircleSize,
+                centerContent = OrbCenterContent.Countdown(phaseSecondsRemaining),
+                animationState = OrbAnimationState.Breathing(
+                    scale = currentOrbScale,
+                    phase = currentPhase,
+                    isPaused = isPaused,
+                ),
             )
 
-            // Vibration / Haptics Toggle Button
-            CircularControlItem(
-                icon = Icons.Rounded.Vibration,
-                contentDescription = if (hapticsOn) "Disable Haptics" else "Enable Haptics",
-                isActive = hapticsOn,
-                onClick = { hapticsOn = !hapticsOn },
-            )
+            Spacer(modifier = Modifier.height(36.dp))
+
+            // Time remaining text: e.g. "2:46 remaining"
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = String.format(java.util.Locale.getDefault(), "%d:%02d", remainingMinutes, remainingSecs),
+                    style = LumyrinthTypography.Body.copy(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    color = Color.White,
+                )
+                Text(
+                    text = "remaining",
+                    style = LumyrinthTypography.Body.copy(
+                        fontSize = 14.sp,
+                        color = Color(0x99FFFFFF),
+                    ),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Sleek Gradient Progress Bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .height(5.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(Color(0x2AFFFFFF)),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(smoothProgress)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color(0xFFA855F7), // Purple
+                                    Color(0xFFEC4899), // Pink
+                                    Color(0xFFFB923C), // Orange/Amber
+                                )
+                            )
+                        ),
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(0.7f))
+
+            // Bottom Controls Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Mute / Unmute Volume Button
+                CircularControlItem(
+                    icon = if (soundOn) Icons.AutoMirrored.Rounded.VolumeUp else Icons.AutoMirrored.Rounded.VolumeOff,
+                    contentDescription = if (soundOn) "Mute" else "Unmute",
+                    isActive = soundOn,
+                    onClick = { soundOn = !soundOn },
+                )
+
+                // Large Center Pause / Resume Button with Glowing Gradient Ring Border
+                CenterPlayPauseControl(
+                    isPaused = isPaused,
+                    onClick = {
+                        if (isPaused) {
+                            // Resuming
+                            val now = SystemClock.elapsedRealtime()
+                            if (pauseStartRealtime > 0L) {
+                                accumulatedPauseMillis += (now - pauseStartRealtime).coerceAtLeast(0L)
+                                pauseStartRealtime = 0L
+                            }
+                            isPaused = false
+                        } else {
+                            // Pausing
+                            pauseStartRealtime = SystemClock.elapsedRealtime()
+                            isPaused = true
+                        }
+                    },
+                )
+
+                // Vibration / Haptics Toggle Button
+                CircularControlItem(
+                    icon = Icons.Rounded.Vibration,
+                    contentDescription = if (hapticsOn) "Disable Haptics" else "Enable Haptics",
+                    isActive = hapticsOn,
+                    onClick = { hapticsOn = !hapticsOn },
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
     }
 
     // Confirm close modal dialog

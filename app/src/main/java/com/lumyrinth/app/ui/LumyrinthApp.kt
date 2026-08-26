@@ -46,6 +46,8 @@ import com.lumyrinth.app.ui.screens.SettingsScreen
 import com.lumyrinth.app.ui.screens.TermsScreen
 import com.lumyrinth.app.ui.screens.WelcomeScreen
 import com.lumyrinth.app.ui.theme.LumyrinthColors
+import com.lumyrinth.app.ui.theme.LumyrinthTheme
+import com.lumyrinth.app.ui.theme.LumyrinthThemeTokens
 import com.lumyrinth.app.ui.viewmodels.CustomRhythmViewModel
 import com.lumyrinth.app.ui.viewmodels.ExploreViewModel
 import com.lumyrinth.app.ui.viewmodels.HomeViewModel
@@ -128,8 +130,10 @@ fun LumyrinthApp() {
         else -> null
     }
 
-    Box(Modifier.fillMaxSize().background(LumyrinthColors.BgBase)) {
-        NavHost(navController = navController, startDestination = startDestination) {
+    LumyrinthTheme(appTheme = preferences.appTheme) {
+        val palette = LumyrinthThemeTokens.palette
+        Box(Modifier.fillMaxSize().background(palette.bgBase)) {
+            NavHost(navController = navController, startDestination = startDestination) {
             composable(Routes.WELCOME) {
                 WelcomeScreen(
                     onGetStarted = { navController.navigate(Routes.GOALS) },
@@ -212,6 +216,7 @@ fun LumyrinthApp() {
                     onToggleReminder = { settingsViewModel.setDailyReminder(context, it) },
                     onReminderTimeChange = { settingsViewModel.setReminderTime(context, it) },
                     onAmbientSoundscapeChange = settingsViewModel::setAmbientSoundscape,
+                    onThemeChange = settingsViewModel::setAppTheme,
                     onRetakeOnboarding = {
                         settingsViewModel.resetOnboarding()
                         navController.navigate(Routes.WELCOME) { popUpTo(0) }
@@ -365,6 +370,7 @@ fun LumyrinthApp() {
             )
         }
     }
+}
 }
 
 private fun navigateMain(navController: NavHostController, route: String) {

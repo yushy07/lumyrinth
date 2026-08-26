@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lumyrinth.app.ui.theme.LumyrinthColors
+import com.lumyrinth.app.ui.theme.LumyrinthThemeTokens
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 
 @Composable
@@ -41,8 +42,11 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     loading: Boolean = false,
-    backgroundBrush: Brush = LumyrinthColors.GradientPrimary,
+    backgroundBrush: Brush? = null,
 ) {
+    val palette = LumyrinthThemeTokens.palette
+    val resolvedBrush = backgroundBrush ?: palette.gradientPrimary
+
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -60,13 +64,13 @@ fun PrimaryButton(
             .shadow(
                 elevation = shadowElevation,
                 shape = RoundedCornerShape(999.dp),
-                spotColor = LumyrinthColors.AccentPurple.copy(alpha = 0.45f),
-                ambientColor = LumyrinthColors.AccentPink.copy(alpha = 0.35f),
+                spotColor = palette.primaryAccent.copy(alpha = 0.45f),
+                ambientColor = palette.secondaryAccent.copy(alpha = 0.35f),
             )
             .clip(RoundedCornerShape(999.dp))
             .background(
-                if (enabled) backgroundBrush else Brush.linearGradient(
-                    listOf(LumyrinthColors.SurfaceCardAlt, LumyrinthColors.SurfaceCardAlt)
+                if (enabled) resolvedBrush else Brush.linearGradient(
+                    listOf(palette.surfaceCardAlt, palette.surfaceCardAlt)
                 )
             )
             .clickable(
