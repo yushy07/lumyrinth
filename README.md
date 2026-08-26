@@ -43,7 +43,7 @@ Near-black surfaces, soft pastel light, Manrope typography, and the official **R
 
 | Platform | Minimum | Target |
 | --- | ---: | ---: |
-| Android | API 26 / Android 8.0 | API 35 / Android 15 |
+| Android | API 26 / Android 8.0 | API 36 / Android 16 |
 
 ## Run it locally
 
@@ -52,11 +52,11 @@ git clone https://github.com/yushy07/lumyrinth.git
 cd lumyrinth
 ```
 
-Open the folder in Android Studio, let Gradle sync, and run the `app` configuration on an emulator or Android device.
+Use JDK 17 and an Android SDK containing API 36. Open the folder in Android Studio, let Gradle sync, and run the `app` configuration on an emulator or Android device. Debug builds use Android's generated per-user debug keystore; release signing credentials belong only in an untracked `keystore.properties` based on `keystore.properties.example`.
 
 ## Privacy
 
-Lumyrinth has no account system, advertising, analytics, cloud sync, or subscription. Preferences, custom rhythms, and session history remain on the device.
+Lumyrinth has no account system, advertising, analytics, cloud sync, or subscription. Preferences, custom rhythms, and session history remain on the device, and Android backup/device transfer is disabled for app data in V1.
 
 The release-ready store listing, Data safety notes, privacy-policy template, and official assets live in [`play-store/`](play-store/).
 

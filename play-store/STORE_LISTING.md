@@ -13,7 +13,7 @@ Lumyrinth is a private, offline-first breathing companion designed for quiet mom
 
 FEATURES
 - Guided breathing sessions for relaxation, focus, sleep, and quick resets
-- Six ready-to-use rhythms, including Slow Down, Equal Rhythm, Square, Steady, Nightfall, and Quick Reset
+- Nine ready-to-use rhythms, including Slow Down, Equal Rhythm, Square, Steady, Nightfall, and Quick Reset
 - Create and save comfortable custom rhythms
 - Original offline ambience: Rain, Night, Ocean, Forest, Fireplace, Stream, and Deep Space
 - Gentle sound and haptic guidance, with controls during every session

@@ -8,7 +8,7 @@ Lumyrinth is provided by **[INSERT DEVELOPER OR COMPANY LEGAL NAME]**. This poli
 
 Lumyrinth does not create accounts, use advertising, use analytics, or transmit your personal information to our servers or to third parties.
 
-Your breathing preferences, custom rhythms, and session history are stored locally on your device so the app can provide its features. This information stays on your device unless you choose to remove the app or clear its app data through Android settings.
+Your breathing preferences, custom rhythms, and session history are stored locally on your device so the app can provide its features. Lumyrinth disables Android cloud backup and device-transfer backup for this app data. This information stays on your device unless you clear it in Lumyrinth, clear app storage through Android settings, or uninstall the app.
 
 ## Device permissions
 
@@ -16,7 +16,7 @@ Lumyrinth may request vibration permission to provide optional haptic breathing 
 
 ## Retention and deletion
 
-All practice data is retained only on your device. You can delete it at any time by clearing Lumyrinth's app storage or uninstalling the app.
+All practice data is retained only on your device. You can delete it from Settings → Data Management → Clear all my data, by clearing Lumyrinth's app storage, or by uninstalling the app.
 
 ## Children's privacy
 

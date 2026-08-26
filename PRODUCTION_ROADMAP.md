@@ -1074,7 +1074,7 @@ Because Lumyrinth is intentionally analytics-free in V1, define a privacy-preser
 
 - [x] Clean clone builds.
 - [x] CI is green.
-- [x] Signed AAB installs.
+- [ ] Signed AAB installs. Requires the private production keystore and a device.
 - [x] Version code/name are correct.
 - [x] Database migrations pass.
 - [x] No fabricated data remains.
@@ -1082,33 +1082,22 @@ Because Lumyrinth is intentionally analytics-free in V1, define a privacy-preser
 - [x] Session timing passes monotonic clock testing.
 - [x] Soundscape claims match implementation.
 - [x] Privacy/backup behavior matches policy.
-- [x] TalkBack and responsive typography flows pass.
-- [x] Play assets and policy URL readiness confirmed.
-- [x] Pre-launch findings are resolved or explicitly accepted.
+- [ ] TalkBack and responsive typography flows pass on the device matrix. Code and test-APK compilation pass; device execution is pending.
+- [ ] Play assets and policy URL readiness confirmed. Assets exist; the public policy URL and real support contact are pending.
+- [ ] Pre-launch findings are resolved or explicitly accepted. Requires Play Internal testing.
 
 ---
 
 # 12. Progress Log
 
-| Date | Milestone ID | Work-package ID | Status | Summary of changes | Files changed | Tests added | Commands executed | Exact verification results | Commit hash | Remaining work | Known limitations | Blockers |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 2026-08-25 | M0 | M0.1 | COMPLETED | Removed debug.keystore dependency from build.gradle.kts | app/build.gradle.kts | None | gradle assembleDebug | SUCCESS | 97d1024 | M0.2-M11 | None | None |
-| 2026-08-25 | M0 | M0.2 | COMPLETED | Configured Java 17 toolchain in build.gradle.kts | app/build.gradle.kts | None | gradle assembleDebug | SUCCESS | 97d1024 | M0.3-M11 | None | None |
-| 2026-08-25 | M0 | M0.3 | COMPLETED | Verified build system and test execution capabilities | github/workflows | None | gradle testDebugUnitTest | SUCCESS | 97d1024 | M0.4-M11 | None | None |
-| 2026-08-25 | M0 | M0.4 | COMPLETED | Enabled Room schema exports to app/schemas via KSP | app/build.gradle.kts | None | compile_applet | SUCCESS (4.json generated) | 97d1024 | M1-M11 | None | None |
-| 2026-08-25 | M1 | M1.1 | COMPLETED | Removed fabricated progress floors (coerceAtLeast) and hardcoded fallbacks (7, 8, 13, 42) from HomeScreen and ProgressScreen | HomeScreen.kt, ProgressScreen.kt | ProgressCalculatorTest | gradle testDebugUnitTest | SUCCESS | 97d1024 | M1.2-M11 | None | None |
-| 2026-08-25 | M1 | M1.2 | COMPLETED | Persisted exact durationSecondsActual and aggregated mindful minutes from actual seconds across domain and UI | SessionEntity.kt, ProgressCalculator.kt, LumyrinthApp.kt | ProgressCalculatorTest | gradle testDebugUnitTest | SUCCESS | 97d1024 | M1.3-M11 | None | None |
-| 2026-08-25 | M1 | M1.3 | COMPLETED | Enabled exportSchema=true, defined MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, removed fallbackToDestructiveMigration | LumyrinthDatabase.kt, SessionRepository.kt | ProgressCalculatorTest | compile_applet | SUCCESS | 97d1024 | M1.4-M11 | None | None |
-| 2026-08-25 | M1 | M1.4 | COMPLETED | Transactionally cleared sessions and custom rhythms in clearAllData() | SessionRepository.kt | None | compile_applet | SUCCESS | 97d1024 | M1.5-M11 | None | None |
-| 2026-08-25 | M1 | M1.5 | COMPLETED | Standardized 4-0-4-0 custom rhythm defaults and enforced non-zero total phase validation | CustomRhythmScreen.kt | None | compile_applet | SUCCESS | 97d1024 | M2-M11 | None | None |
-| 2026-08-25 | M2 | M2.1-M2.4 | COMPLETED | Implemented SystemClock.elapsedRealtime monotonic session timing, background auto-pause, idempotent completion, and locked rhythm for V1 | SessionScreen.kt | None | compile_applet, testDebugUnitTest | SUCCESS | 97d1024 | M3-M11 | None | None |
-| 2026-08-25 | M3 | M3.1-M3.2 | COMPLETED | Implemented daily reminder scheduling with initial local time delay via WorkManager, PendingIntent to MainActivity, and ExoPlayer AudioAttributes focus | ReminderScheduler.kt, ReminderWorker.kt, AmbientAudioController.kt, LumyrinthApp.kt | None | compile_applet, testDebugUnitTest | SUCCESS | 97d1024 | M4-M11 | None | None |
-| 2026-08-25 | M4 | M4.1-M4.3 | COMPLETED | Added returnScreen backstack tracking, created AppContainer DI container, LumyrinthApplication, and extracted ViewModels (Home, Explore, Progress, Settings, CustomRhythm) | LumyrinthApp.kt, AppContainer.kt, LumyrinthApplication.kt, HomeViewModel.kt, ExploreViewModel.kt, ProgressViewModel.kt, SettingsViewModel.kt, CustomRhythmViewModel.kt | ViewModelTests | compile_applet, testDebugUnitTest | SUCCESS | 97d1024 | None | None | None |
-| 2026-08-25 | M5 | M5.1-M5.3 | COMPLETED | Standardized design tokens (LumyrinthSpacing, LumyrinthShapes) and expanded M3 semantic color scheme (onTertiary, outline, surfaceContainer) | Theme.kt, Color.kt | None | compile_applet | SUCCESS | 97d1024 | None | None | None |
-| 2026-08-25 | M6 | M6.1-M6.9 | COMPLETED | Polished UI across Onboarding, Home, Explore, Rhythm Detail, Custom Builder, Active Session, Complete, Progress, and Settings screens | OnboardingScreens.kt, HomeScreen.kt, ExploreScreen.kt, DetailScreen.kt, CustomRhythmScreen.kt, SessionScreen.kt, CompleteScreen.kt, ProgressScreen.kt, SettingsScreen.kt | None | compile_applet | SUCCESS | 97d1024 | None | None | None |
-| 2026-08-25 | M7 | M7.1-M7.5 | COMPLETED | Unlocked screenOrientation for adaptive viewports, checked TalkBack content descriptions, ensured 48dp minimum touch targets, extracted strings.xml resources, and audited WCAG contrast | AndroidManifest.xml, strings.xml, LumyrinthApp.kt, LegalScreens.kt | None | compile_applet | SUCCESS | 97d1024 | None | None | None |
-| 2026-08-25 | M8 | M8.1-M8.4 | COMPLETED | Optimized recomposition with StateFlow and remember, ensured ExoPlayer/GuidanceSound release in DisposableEffect, configured R8 ProGuard rules | Theme.kt, LumyrinthApp.kt, proguard-rules.pro | None | compile_applet | SUCCESS | 97d1024 | None | None | None |
-| 2026-08-25 | M9 | M9.1-M9.4 | COMPLETED | Configured backup rules, embedded medical & wellness disclaimer UI across Settings and Legal, audited dependencies, hardened release configs | backup_rules.xml, data_extraction_rules.xml, AndroidManifest.xml, strings.xml, LegalScreens.kt | None | compile_applet | SUCCESS | 97d1024 | None | None | None |
-| 2026-08-25 | M10 | M10.1-M10.5 | COMPLETED | Created comprehensive Robolectric unit test suite covering ViewModels, ProgressCalculator, and Room DAOs (SessionDao, CustomRhythmDao) | RoomDaoTest.kt, ViewModelTests.kt, ProgressCalculatorTest.kt | RoomDaoTest, ViewModelTests, ProgressCalculatorTest | testDebugUnitTest | SUCCESS | 97d1024 | None | None | None |
-| 2026-08-25 | M11 | M11.1-M11.4 | COMPLETED | Verified production APK compilation and local unit test suite execution without failures | None | All Tests | compile_applet, testDebugUnitTest | SUCCESS | 97d1024 | None | None | None |
+| Date | Scope | Status | Evidence | Commit | Remaining / blocker |
+|---|---|---|---|---|---|
+| 2026-08-26 | M0-M4 foundation | COMPLETE | Standard debug signing, JDK 17, CI, exact seconds, tested Room 2→3→4 migrations, atomic Room clearing, monotonic timing, lifecycle pause, idempotent completion, real reminders, soundscapes, Navigation Compose, application container, lifecycle-aware screen ViewModels | `f11952c` | None for these work packages |
+| 2026-08-26 | M5-M7 quality gates | CODE COMPLETE; DEVICE QA PENDING | Semantic tokens and Material typography, ripple feedback, 48dp core targets, reduced-motion background path, constrained tablet content, scalable Explore `LazyColumn`, search IME handling, truthful empty states, custom-edit restoration/discard warning, TalkBack phase/live-state semantics | `f6855f3` | Requires emulator/physical-device TalkBack, 200% font, landscape, tablet and contrast validation |
+| 2026-08-26 | M8 performance/media | PARTIAL | Home animation simplified, Explore uses lazy rendering, reduced-motion avoids cosmic infinite transitions, audio focus and deterministic controller release are implemented | `f6855f3` | Macrobenchmark, profiler, battery, loudness and loop-boundary measurements require representative devices |
+| 2026-08-26 | M9 privacy/security | CODE COMPLETE; EXTERNAL POLICY PENDING | Backups disabled, policy wording aligned, placeholder in-app support address removed, dependency graph pinned, API 36 target adopted | `39da31d`, `5be06c9`, `f6855f3` | Host final policy and supply a real legal name/date/support address |
+| 2026-08-26 | M10 automated quality | LOCAL GATES PASS | `testDebugUnitTest`: 20/20; `lintDebug`: 0 errors and 42 non-blocking warnings; `assembleDebug`: success; `assembleDebugAndroidTest`: success; `bundleRelease`: success; release AAB confirmed unsigned | `8385c88`, `f6855f3` | Execute instrumented tests on a device; add screenshot/device-matrix evidence |
+| 2026-08-26 | M11 Play rollout | BLOCKED BY EXTERNAL RELEASE INPUTS | Version 1.1.0 / code 2 and Play assets/docs prepared | `f6855f3` plus release-documentation commit | Production keystore, Play account, public policy URL, Internal testing, pre-launch report, staged rollout |
+
+The detailed current release evidence is maintained in `docs/RELEASE_STATUS.md`. Do not replace pending device or Play Console evidence with assumptions.
 

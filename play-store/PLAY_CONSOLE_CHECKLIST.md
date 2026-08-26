@@ -2,6 +2,7 @@
 
 - [ ] Create or use a verified Google Play Console developer account.
 - [ ] Build a signed Android App Bundle (`.aab`) using your own keystore.
+- [ ] Confirm the release targets Android 16 / API 36 or higher before submission.
 - [ ] Upload the AAB to Internal testing first.
 - [ ] Upload screenshots: phone portrait, minimum two.
 - [ ] Create a 512×512 PNG launcher icon and 1024×500 feature graphic from the supplied brand mark.
@@ -12,3 +13,4 @@
 - [ ] Complete content rating and target-audience questionnaires accurately.
 - [ ] Add a support email and developer contact details.
 - [ ] Submit to Internal testing and resolve any Play pre-launch report findings.
+- [ ] Verify TalkBack, 200% font scale, rotation, reminders, audio focus, and database upgrade behavior on physical or virtual devices.
