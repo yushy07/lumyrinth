@@ -1,6 +1,6 @@
 [versions]
-agp = "9.1.1"
-kotlin = "2.2.21"
+agp = "9.3.2"
+kotlin = "2.4.10"
 coreKtx = "1.16.0"
 lifecycle = "2.9.0"
 navigation = "2.9.3"
@@ -48,14 +48,14 @@ androidx-work-testing = { group = "androidx.work", name = "work-testing", versio
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 junit = { group = "junit", name = "junit", version = "4.13.2" }
-robolectric = { group = "org.robolectric", name = "robolectric", version = "4.14.1" }
-androidx-test-core = { group = "androidx.test", name = "core-ktx", version = "1.6.1" }
-androidx-test-runner = { group = "androidx.test", name = "runner", version = "1.6.2" }
-androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit-ktx", version = "1.2.1" }
+robolectric = { group = "org.robolectric", name = "robolectric", version = "4.16.1" }
+androidx-test-core = { group = "androidx.test", name = "core-ktx", version = "1.7.0" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version = "1.7.0" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit-ktx", version = "1.3.0" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
-kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.10.2" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version = "1.11.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -75,7 +76,7 @@ fun StandardCard(
     val clickModifier = if (onClick != null) {
         Modifier.clickable(
             interactionSource = remember { MutableInteractionSource() },
-            indication = null,
+            indication = LocalIndication.current,
             role = Role.Button,
             onClick = onClick,
         )
@@ -234,7 +235,7 @@ fun FeatureCard(
                         .border(1.dp, Color(0x40A855F7), RoundedCornerShape(999.dp))
                         .clickable(
                             interactionSource = startInteractionSource,
-                            indication = null,
+                            indication = LocalIndication.current,
                             role = Role.Button,
                             onClick = onStart,
                         ),
@@ -267,7 +268,7 @@ fun FeatureCard(
                         .border(1.dp, Color(0x40A855F7), CircleShape)
                         .clickable(
                             interactionSource = playInteractionSource,
-                            indication = null,
+                            indication = LocalIndication.current,
                             role = Role.Button,
                             onClick = onStart,
                         ),
@@ -313,7 +314,7 @@ fun ListRowCard(
             .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(20.dp))
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onClick,
             )
@@ -543,7 +544,7 @@ fun ExploreRhythmCard(
             )
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onClick,
             )
@@ -670,7 +671,7 @@ fun ContinueRhythmCard(
             )
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onRepeat,
             )
@@ -737,7 +738,7 @@ fun ContinueRhythmCard(
                 .border(1.dp, Color(0x66A855F7), RoundedCornerShape(999.dp))
                 .clickable(
                     interactionSource = repeatInteractionSource,
-                    indication = null,
+                    indication = LocalIndication.current,
                     role = Role.Button,
                     onClick = onRepeat,
                 )

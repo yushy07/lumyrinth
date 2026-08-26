@@ -147,7 +147,7 @@ object ProgressCalculator {
         var current = 0
         var previous: LocalDate? = null
         activeDates.sorted().forEach { date ->
-            current = if (previous != null && date == previous!!.plusDays(1)) current + 1 else 1
+            current = if (previous != null && date == previous.plusDays(1)) current + 1 else 1
             longest = maxOf(longest, current)
             previous = date
         }

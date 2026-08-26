@@ -1,5 +1,6 @@
 package com.lumyrinth.app.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -13,6 +14,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +69,7 @@ import androidx.compose.ui.window.Dialog
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.ui.components.GhostButton
 import com.lumyrinth.app.ui.components.PrimaryButton
+import com.lumyrinth.app.ui.components.ConfirmDialog
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import kotlin.math.PI
@@ -87,15 +91,26 @@ fun CustomRhythmScreen(
         hapticsDefault: Boolean,
     ) -> Unit,
 ) {
-    var inhaleSeconds by remember { mutableIntStateOf(initialRhythm?.inhaleSeconds ?: 4) }
-    var hold1Seconds by remember { mutableIntStateOf(initialRhythm?.hold1Seconds ?: 0) }
-    var exhaleSeconds by remember { mutableIntStateOf(initialRhythm?.exhaleSeconds ?: 4) }
-    var hold2Seconds by remember { mutableIntStateOf(initialRhythm?.hold2Seconds ?: 0) }
-    var durationMinutes by remember { mutableIntStateOf(initialRhythm?.defaultDurationMinutes ?: 5) }
+    var inhaleSeconds by rememberSaveable { mutableIntStateOf(initialRhythm?.inhaleSeconds ?: 4) }
+    var hold1Seconds by rememberSaveable { mutableIntStateOf(initialRhythm?.hold1Seconds ?: 0) }
+    var exhaleSeconds by rememberSaveable { mutableIntStateOf(initialRhythm?.exhaleSeconds ?: 4) }
+    var hold2Seconds by rememberSaveable { mutableIntStateOf(initialRhythm?.hold2Seconds ?: 0) }
+    var durationMinutes by rememberSaveable { mutableIntStateOf(initialRhythm?.defaultDurationMinutes ?: 5) }
 
-    var showNameDialog by remember { mutableStateOf(false) }
-    var rhythmName by remember { mutableStateOf(initialRhythm?.name ?: "") }
-    var validationError by remember { mutableStateOf<String?>(null) }
+    var showNameDialog by rememberSaveable { mutableStateOf(false) }
+    var showDiscardDialog by rememberSaveable { mutableStateOf(false) }
+    var isSaving by rememberSaveable { mutableStateOf(false) }
+    var rhythmName by rememberSaveable { mutableStateOf(initialRhythm?.name ?: "") }
+    var validationError by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val hasUnsavedChanges = inhaleSeconds != (initialRhythm?.inhaleSeconds ?: 4) ||
+        hold1Seconds != (initialRhythm?.hold1Seconds ?: 0) ||
+        exhaleSeconds != (initialRhythm?.exhaleSeconds ?: 4) ||
+        hold2Seconds != (initialRhythm?.hold2Seconds ?: 0) ||
+        durationMinutes != (initialRhythm?.defaultDurationMinutes ?: 5) ||
+        rhythmName != (initialRhythm?.name ?: "")
+    val requestBack = { if (hasUnsavedChanges) showDiscardDialog = true else onBack() }
+    BackHandler(onBack = requestBack)
 
     // Staggered screen entry animation
     val animProgress = remember { Animatable(0f) }
@@ -124,9 +139,9 @@ fun CustomRhythmScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
-                onClick = onBack,
+                onClick = requestBack,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(Color(0xFF160E26)),
             ) {
@@ -285,6 +300,17 @@ fun CustomRhythmScreen(
                 )
             }
 
+            if (hold1Seconds + hold2Seconds > inhaleSeconds + exhaleSeconds || hold1Seconds > 10 || hold2Seconds > 10) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "This pattern uses long breath holds. Breathe comfortably, avoid straining, and stop if you feel dizzy.",
+                    style = LumyrinthTypography.BodySm,
+                    color = Color(0xFFFDBA74),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
         }
 
@@ -366,7 +392,9 @@ fun CustomRhythmScreen(
                         PrimaryButton(
                             label = "Save",
                             onClick = {
+                                if (isSaving) return@PrimaryButton
                                 val finalName = rhythmName.trim().ifEmpty { "Custom Rhythm" }
+                                isSaving = true
                                 showNameDialog = false
                                 onSaveRhythm(
                                     initialRhythm?.id,
@@ -376,16 +404,30 @@ fun CustomRhythmScreen(
                                     exhaleSeconds,
                                     hold2Seconds,
                                     durationMinutes,
-                                    true,
-                                    true,
+                                    initialRhythm?.soundDefault ?: true,
+                                    initialRhythm?.hapticsDefault ?: true,
                                 )
                             },
+                            enabled = !isSaving,
+                            loading = isSaving,
                             modifier = Modifier.weight(1f),
                         )
                     }
                 }
             }
         }
+    }
+
+    if (showDiscardDialog) {
+        ConfirmDialog(
+            title = "Discard changes?",
+            message = "Your unsaved rhythm changes will be lost.",
+            confirmLabel = "Discard",
+            cancelLabel = "Keep editing",
+            isDestructive = true,
+            onConfirm = onBack,
+            onDismiss = { showDiscardDialog = false },
+        )
     }
 }
 
@@ -561,7 +603,7 @@ private fun CircularStepperButton(
             .border(1.dp, if (enabled) Color(0x22FFFFFF) else Color(0x0AFFFFFF), CircleShape)
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 enabled = enabled,
                 onClick = onClick,

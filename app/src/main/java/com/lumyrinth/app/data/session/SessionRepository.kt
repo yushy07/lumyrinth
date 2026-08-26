@@ -54,6 +54,9 @@ class SessionRepository private constructor(private val database: LumyrinthDatab
                 ).addMigrations(*LumyrinthDatabase.ALL_MIGRATIONS).build()
             ).also { instance = it }
         }
+
+        internal fun forTesting(database: LumyrinthDatabase): SessionRepository =
+            SessionRepository(database)
     }
 }
 

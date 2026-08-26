@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -32,19 +33,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.domain.PresetRhythms
+import com.lumyrinth.app.R
 import com.lumyrinth.app.domain.ProgressSummary
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.domain.RhythmCategory
@@ -54,8 +55,8 @@ import com.lumyrinth.app.ui.components.ContinueRhythmCard
 import com.lumyrinth.app.ui.components.FeatureCard
 import com.lumyrinth.app.ui.components.HomeProgressSummaryCard
 import com.lumyrinth.app.ui.components.PrimaryButton
-import com.lumyrinth.app.ui.components.RhythmBreathingCircle
 import com.lumyrinth.app.ui.components.StandardCard
+import com.lumyrinth.app.ui.components.rememberIsReducedMotion
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import java.time.LocalTime
@@ -83,23 +84,33 @@ fun HomeScreen(
         }
     }
 
-    var selectedPreset by remember(featuredRhythm.id) { mutableStateOf(featuredRhythm) }
+    val selectedPreset = featuredRhythm
 
     // Staggered screen entry animation
+    val reducedMotion = rememberIsReducedMotion()
     val animProgress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        animProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        )
+    LaunchedEffect(reducedMotion) {
+        if (reducedMotion) {
+            animProgress.snapTo(1f)
+        } else {
+            animProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+            )
+        }
     }
 
     val displayDurationText = if (progressSummary.latestSession != null) {
         val actualSecs = progressSummary.latestSession.durationSecondsActual
         if (actualSecs > 0) {
-            if (actualSecs < 60) "$actualSecs seconds" else "${actualSecs / 60} minutes"
+            if (actualSecs < 60) {
+                pluralStringResource(R.plurals.duration_seconds, actualSecs, actualSecs)
+            } else {
+                pluralStringResource(R.plurals.duration_minutes, actualSecs / 60, actualSecs / 60)
+            }
         } else {
-            "${progressSummary.latestSession.durationMinutesActual} minutes"
+            val minutes = progressSummary.latestSession.durationMinutesActual
+            pluralStringResource(R.plurals.duration_minutes, minutes, minutes)
         }
     } else {
         ""
@@ -110,7 +121,9 @@ fun HomeScreen(
 
         Column(
             modifier = Modifier
+                .widthIn(max = 720.dp)
                 .fillMaxSize()
+                .align(Alignment.TopCenter)
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp),
         ) {
@@ -208,23 +221,6 @@ fun HomeScreen(
                                 text = selectedPreset.patternSummary,
                                 style = LumyrinthTypography.Label.copy(fontSize = 12.sp),
                                 color = LumyrinthColors.TextSecondary,
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Compact preview keeps the primary action above the fold.
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(128.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            RhythmBreathingCircle(
-                                rhythm = selectedPreset,
-                                circleSize = 116.dp,
-                                showPhaseLabel = true,
-                                showCountdown = true,
                             )
                         }
 

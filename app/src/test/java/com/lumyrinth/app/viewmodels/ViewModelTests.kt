@@ -1,10 +1,12 @@
 package com.lumyrinth.app.viewmodels
 
 import android.content.Context
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.lumyrinth.app.data.UserPreferencesRepository
 import com.lumyrinth.app.data.session.CustomRhythmEntity
 import com.lumyrinth.app.data.session.SessionRepository
+import com.lumyrinth.app.data.session.LumyrinthDatabase
 import com.lumyrinth.app.ui.viewmodels.HomeViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -12,6 +14,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -24,12 +27,25 @@ class ViewModelTests {
     private lateinit var context: Context
     private lateinit var sessionRepo: SessionRepository
     private lateinit var prefsRepo: UserPreferencesRepository
+    private lateinit var database: LumyrinthDatabase
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
-        sessionRepo = SessionRepository.from(context)
+        database = Room.inMemoryDatabaseBuilder(context, LumyrinthDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        sessionRepo = SessionRepository.forTesting(database)
         prefsRepo = UserPreferencesRepository(context)
+        runBlocking {
+            sessionRepo.clearAllData()
+            prefsRepo.clearAllPreferences()
+        }
+    }
+
+    @After
+    fun tearDown() {
+        database.close()
     }
 
     @Test

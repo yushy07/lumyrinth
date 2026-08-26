@@ -14,6 +14,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +40,7 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Vibration
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -299,7 +300,7 @@ fun DetailScreen(
             IconButton(
                 onClick = onBack,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(Color(0xFF160E26)),
             ) {
@@ -314,7 +315,7 @@ fun DetailScreen(
             IconButton(
                 onClick = onToggleFavorite,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(Color(0xFF160E26)),
             ) {
@@ -420,7 +421,7 @@ fun DetailScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(46.dp),
+                                    .height(48.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
@@ -530,14 +531,14 @@ fun DetailScreen(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(40.dp)
+                                .height(48.dp)
                                 .scale(chipScale)
                                 .clip(RoundedCornerShape(999.dp))
                                 .background(bgBrush)
                                 .border(1.dp, borderColor, RoundedCornerShape(999.dp))
                                 .clickable(
                                     interactionSource = interactionSource,
-                                    indication = null,
+                                    indication = LocalIndication.current,
                                     role = Role.Button,
                                     onClick = { selectedDurationMinutes = mins },
                                 ),
@@ -576,7 +577,7 @@ fun DetailScreen(
                     Column(modifier = Modifier.fillMaxWidth()) {
                         // Sound Row
                         PreferenceToggleRow(
-                            icon = Icons.Rounded.VolumeUp,
+                                icon = Icons.AutoMirrored.Rounded.VolumeUp,
                             title = "Sound",
                             isOn = soundOn,
                             onToggle = { soundOn = !soundOn },
@@ -646,7 +647,7 @@ private fun PreferenceToggleRow(
             .scale(rowScale)
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onToggle,
             ),

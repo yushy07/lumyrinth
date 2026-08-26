@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -71,7 +72,7 @@ fun PrimaryButton(
             .clickable(
                 enabled = enabled && !loading,
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onClick,
             ),
@@ -105,12 +106,12 @@ fun GhostButton(
 
     Box(
         modifier = modifier
-            .height(44.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(999.dp))
             .clickable(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onClick,
             )
@@ -145,14 +146,14 @@ fun IconCircleButton(
 
     Box(
         modifier = modifier
-            .size(size)
+            .size(size.coerceAtLeast(48.dp))
             .scale(scale)
             .clip(CircleShape)
             .background(if (isPressed) LumyrinthColors.OverlayWhite12 else backgroundColor)
             .border(1.dp, LumyrinthColors.BorderSubtle, CircleShape)
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onClick,
             ),

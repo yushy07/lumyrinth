@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -59,28 +63,36 @@ fun ToggleSwitch(
     Box(
         modifier = modifier
             .width(48.dp)
-            .height(28.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .background(
-                if (checked) LumyrinthColors.GradientPrimary
-                else Brush.linearGradient(listOf(LumyrinthColors.ToggleOff, LumyrinthColors.ToggleOff))
-            )
+            .height(48.dp)
+            .semantics { stateDescription = if (checked) "On" else "Off" }
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Switch,
                 onClick = { onCheckedChange(!checked) },
-            )
-            .padding(vertical = 3.dp),
-        contentAlignment = Alignment.CenterStart,
+            ),
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .offset(x = thumbOffset)
-                .size(22.dp)
-                .clip(CircleShape)
-                .background(Color.White)
-        )
+                .width(48.dp)
+                .height(28.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(
+                    if (checked) LumyrinthColors.GradientPrimary
+                    else Brush.linearGradient(listOf(LumyrinthColors.ToggleOff, LumyrinthColors.ToggleOff))
+                )
+                .padding(vertical = 3.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Box(
+                modifier = Modifier
+                    .offset(x = thumbOffset)
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
+            )
+        }
     }
 }
 
@@ -120,7 +132,7 @@ fun SelectableRow(
             .border(1.dp, borderColor, RoundedCornerShape(20.dp))
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Checkbox,
                 onClick = onToggle,
             )
@@ -213,7 +225,8 @@ fun ChipFilter(
 
             Box(
                 modifier = modifier
-                    .height(if (variant == ChipVariant.Duration) 40.dp else 36.dp)
+                    .height(48.dp)
+                    .semantics { this.selected = selected }
                     .scale(scale)
                     .clip(RoundedCornerShape(999.dp))
                     .background(bgBrush)
@@ -223,7 +236,7 @@ fun ChipFilter(
                     )
                     .clickable(
                         interactionSource = interactionSource,
-                        indication = null,
+                        indication = LocalIndication.current,
                         role = Role.Tab,
                         onClick = onClick,
                     )
@@ -268,7 +281,7 @@ fun ChipFilter(
                     .border(1.dp, borderColor, RoundedCornerShape(20.dp))
                     .clickable(
                         interactionSource = interactionSource,
-                        indication = null,
+                        indication = LocalIndication.current,
                         role = Role.Button,
                         onClick = onClick,
                     )

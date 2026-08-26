@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import kotlin.math.PI
 import kotlin.math.cos
@@ -40,6 +41,27 @@ fun CosmicSectionBackground(
     theme: SectionTheme,
     modifier: Modifier = Modifier,
 ) {
+    if (rememberIsReducedMotion()) {
+        val glow = when (theme) {
+            SectionTheme.HOME, SectionTheme.ONBOARDING -> Color(0x332C0E4F)
+            SectionTheme.EXPLORE -> Color(0x2B172F63)
+            SectionTheme.PROGRESS -> Color(0x25106450)
+            SectionTheme.SETTINGS, SectionTheme.LEGAL -> Color(0x252D1552)
+            SectionTheme.DETAIL -> Color(0x2B5A1831)
+            SectionTheme.SESSION -> Color(0x292B1451)
+        }
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(glow, LumyrinthColors.BgBase),
+                    )
+                )
+        )
+        return
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "cosmic_bg_transition")
 
     // General cycle progress (0f..1f over 12 seconds)
@@ -93,7 +115,7 @@ fun CosmicSectionBackground(
             .fillMaxSize()
             .background(LumyrinthColors.BgBase)
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.fillMaxSize().clearAndSetSemantics { }) {
             val width = size.width
             val height = size.height
 

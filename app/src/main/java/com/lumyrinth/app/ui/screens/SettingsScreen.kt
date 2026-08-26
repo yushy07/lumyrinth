@@ -1,8 +1,10 @@
 package com.lumyrinth.app.ui.screens
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -32,7 +35,7 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Vibration
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material3.AlertDialog
@@ -170,7 +173,9 @@ fun SettingsScreen(
 
         Column(
             modifier = Modifier
+                .widthIn(max = 720.dp)
                 .fillMaxSize()
+                .align(Alignment.TopCenter)
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp),
         ) {
@@ -255,7 +260,7 @@ fun SettingsScreen(
                     )
 
                     SettingsToggleRow(
-                        icon = Icons.Rounded.VolumeUp,
+                        icon = Icons.AutoMirrored.Rounded.VolumeUp,
                         title = "Sound guidance",
                         subtitle = "Chimes & transition tones",
                         checked = userPreferences.soundGuidanceDefault,
@@ -333,6 +338,17 @@ fun SettingsScreen(
                             subtitle = userPreferences.dailyReminderTime,
                             onClick = { showReminderTimeDialog = true },
                         )
+                        TextButton(
+                            onClick = {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                )
+                            },
+                            modifier = Modifier.padding(start = 24.dp),
+                        ) {
+                            Text("Open notification settings")
+                        }
                     }
                 }
             }

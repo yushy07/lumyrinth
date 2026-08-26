@@ -3,14 +3,11 @@ package com.lumyrinth.app.legal
 /**
  * Legal disclosures, privacy policy terms, and conditions for Lumyrinth.
  * 
- * ⚠️ NOTE FOR DEVELOPER (Yu):
- * Google Play requires a publicly accessible URL to this Privacy Policy in the Play Console listing
- * (App content → Privacy policy). Host the content of [LegalContent.PrivacyPolicy] on a public static page
- * (e.g. GitHub Pages or your custom domain) and update the contact placeholder email before store submission.
+ * Google Play requires a publicly accessible copy of the privacy policy before store submission.
+ * Contact details are intentionally omitted from the app until a real support address is configured.
  */
 object LegalContent {
     const val LAST_UPDATED = "August 25, 2026"
-    const val SUPPORT_EMAIL = "support@yourdomain.com"
 
     data class LegalSection(
         val title: String,
@@ -45,7 +42,7 @@ object LegalContent {
                 title = "3. Storage Location & Security",
                 paragraphs = listOf(
                     "All data is saved locally using standard Android on-device storage (Jetpack DataStore and SQLite via Room Database).",
-                    "Because your data never leaves your device, it is protected by your device's built-in operating system encryption and sandbox isolation. There is no cloud transmission, no remote synchronization, and no risk of server-side data breaches."
+                    "Lumyrinth disables Android cloud backup and device-transfer backup for app data. There is no app-operated cloud transmission or remote synchronization."
                 ),
             ),
             LegalSection(
@@ -68,14 +65,8 @@ object LegalContent {
             LegalSection(
                 title = "6. How to Delete Your Data",
                 paragraphs = listOf(
-                    "You retain complete control over your data at all times. You can permanently erase all stored preferences, custom rhythms, and session history at any moment by navigating to Settings → About → 'Clear all my data'.",
+                    "You retain complete control over your data at all times. You can permanently erase all stored preferences, custom rhythms, and session history at any moment by navigating to Settings → Data Management → 'Clear all my data'.",
                     "Alternatively, uninstalling Lumyrinth from your Android device immediately and permanently removes all sandboxed database records and preferences."
-                ),
-            ),
-            LegalSection(
-                title = "7. Contact Information",
-                paragraphs = listOf(
-                    "If you have any questions or feedback regarding this Privacy Policy or your data, please contact the developer at $SUPPORT_EMAIL."
                 ),
             ),
         )
@@ -128,12 +119,6 @@ object LegalContent {
                 title = "6. Changes to Terms",
                 paragraphs = listOf(
                     "We reserve the right to modify or update these Terms & Conditions at any time. When changes occur, the 'Last Updated' date at the top of this document will reflect the revision date. Your continued use of the application following any modifications signifies your acceptance of the updated terms."
-                ),
-            ),
-            LegalSection(
-                title = "7. Contact",
-                paragraphs = listOf(
-                    "If you have inquiries regarding these Terms and Conditions, please contact us at $SUPPORT_EMAIL."
                 ),
             ),
         )

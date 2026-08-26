@@ -6,7 +6,6 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -150,6 +149,24 @@ object LumyrinthShapes {
     val Pill = androidx.compose.foundation.shape.RoundedCornerShape(100.dp)
 }
 
+object LumyrinthMotion {
+    const val QuickMillis = 150
+    const val StandardMillis = 300
+    const val CalmMillis = 600
+    const val AmbientMillis = 12_000
+}
+
+private val AppTypography = Typography(
+    displayLarge = LumyrinthTypography.Display,
+    headlineLarge = LumyrinthTypography.H1,
+    headlineMedium = LumyrinthTypography.H2,
+    titleLarge = LumyrinthTypography.H3,
+    bodyLarge = LumyrinthTypography.Body,
+    bodyMedium = LumyrinthTypography.BodySm,
+    labelLarge = LumyrinthTypography.Button,
+    labelMedium = LumyrinthTypography.Label,
+)
+
 private val DarkColorScheme = darkColorScheme(
     primary = LumyrinthColors.AccentPurple,
     onPrimary = LumyrinthColors.TextPrimary,
@@ -177,8 +194,6 @@ fun LumyrinthTheme(content: @Composable () -> Unit) {
         SideEffect {
             val window = (view.context as? Activity)?.window
             if (window != null) {
-                window.statusBarColor = LumyrinthColors.BgBase.toArgb()
-                window.navigationBarColor = LumyrinthColors.BgElevated.toArgb()
                 WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
                 WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
             }
@@ -187,7 +202,7 @@ fun LumyrinthTheme(content: @Composable () -> Unit) {
 
     MaterialTheme(
         colorScheme = DarkColorScheme,
-        typography = Typography(),
+        typography = AppTypography,
         content = content,
     )
 }

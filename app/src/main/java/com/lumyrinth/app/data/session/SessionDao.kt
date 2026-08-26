@@ -24,7 +24,7 @@ interface SessionDao {
     @Query("SELECT * FROM breathing_sessions ORDER BY startedAtEpochMillis DESC")
     fun observeAll(): Flow<List<SessionEntity>>
 
-    @Query("SELECT * FROM breathing_sessions WHERE completedNaturally = 1 OR durationMinutesActual > 0 ORDER BY startedAtEpochMillis DESC")
+    @Query("SELECT * FROM breathing_sessions WHERE completedNaturally = 1 OR durationSecondsActual > 0 ORDER BY startedAtEpochMillis DESC")
     fun observeCompleted(): Flow<List<SessionEntity>>
 
     @Query("SELECT * FROM breathing_sessions ORDER BY startedAtEpochMillis DESC LIMIT :limit")
@@ -42,16 +42,16 @@ interface SessionDao {
     @Query("SELECT COUNT(*) FROM breathing_sessions")
     fun observeTotalSessionCount(): Flow<Int>
 
-    @Query("SELECT COALESCE(SUM(durationMinutesActual), 0) FROM breathing_sessions")
+    @Query("SELECT COALESCE(SUM(CASE WHEN durationSecondsActual > 0 THEN durationSecondsActual ELSE durationMinutesActual * 60 END) / 60, 0) FROM breathing_sessions")
     fun observeTotalDurationMinutes(): Flow<Int>
 
-    @Query("SELECT COALESCE(AVG(durationMinutesActual), 0.0) FROM breathing_sessions")
+    @Query("SELECT COALESCE(AVG(CASE WHEN durationSecondsActual > 0 THEN durationSecondsActual ELSE durationMinutesActual * 60 END) / 60.0, 0.0) FROM breathing_sessions")
     fun observeAverageDurationMinutes(): Flow<Double>
 
-    @Query("SELECT dateIso, COUNT(*) AS sessionCount, COALESCE(SUM(durationMinutesActual), 0) AS totalMinutes FROM breathing_sessions GROUP BY dateIso ORDER BY dateIso DESC")
+    @Query("SELECT dateIso, COUNT(*) AS sessionCount, COALESCE(SUM(CASE WHEN durationSecondsActual > 0 THEN durationSecondsActual ELSE durationMinutesActual * 60 END) / 60, 0) AS totalMinutes FROM breathing_sessions GROUP BY dateIso ORDER BY dateIso DESC")
     fun observeDailyFrequency(): Flow<List<DailyFrequencyStat>>
 
-    @Query("SELECT rhythmId, rhythmNameSnapshot, COUNT(*) AS sessionCount, COALESCE(SUM(durationMinutesActual), 0) AS totalMinutes FROM breathing_sessions GROUP BY rhythmId ORDER BY sessionCount DESC")
+    @Query("SELECT rhythmId, rhythmNameSnapshot, COUNT(*) AS sessionCount, COALESCE(SUM(CASE WHEN durationSecondsActual > 0 THEN durationSecondsActual ELSE durationMinutesActual * 60 END) / 60, 0) AS totalMinutes FROM breathing_sessions GROUP BY rhythmId ORDER BY sessionCount DESC")
     fun observeRhythmFrequency(): Flow<List<RhythmFrequencyStat>>
 
     @Query("SELECT * FROM breathing_sessions ORDER BY startedAtEpochMillis DESC LIMIT 1")

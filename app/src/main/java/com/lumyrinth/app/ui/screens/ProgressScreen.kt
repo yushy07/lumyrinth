@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,10 +45,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.domain.ProgressSummary
+import com.lumyrinth.app.R
 import com.lumyrinth.app.ui.components.CalendarGrid
 import com.lumyrinth.app.ui.components.StandardCard
 import com.lumyrinth.app.ui.components.WeeklyBarChart
@@ -92,7 +96,9 @@ fun ProgressScreen(
 
         Column(
             modifier = Modifier
+                .widthIn(max = 720.dp)
                 .fillMaxSize()
+                .align(Alignment.TopCenter)
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp),
         ) {
@@ -116,7 +122,7 @@ fun ProgressScreen(
                 Spacer(modifier = Modifier.height(4.dp))
                 val streakCount = progressSummary.currentStreakDays
                 Text(
-                    text = "$streakCount day rhythm",
+                    text = pluralStringResource(R.plurals.streak_days, streakCount, streakCount),
                     style = LumyrinthTypography.BodySm.copy(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
@@ -180,6 +186,25 @@ fun ProgressScreen(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
             ) {
+                if (progressSummary.totalSessionsCount == 0) {
+                    StandardCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = stringResource(R.string.progress_empty_title),
+                                style = LumyrinthTypography.H3,
+                                color = LumyrinthColors.TextPrimary,
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = stringResource(R.string.progress_empty_body),
+                                style = LumyrinthTypography.BodySm,
+                                color = LumyrinthColors.TextSecondary,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
                 // Unified Stat Card: Today, This week, Sessions
                 Box(
                     modifier = Modifier
@@ -389,7 +414,7 @@ fun ProgressScreen(
                                 color = LumyrinthColors.TextSecondary,
                             )
                             val avgFormatted = if (progressSummary.averageSessionMinutes > 0) {
-                                String.format(java.util.Locale.US, "%.1f min", progressSummary.averageSessionMinutes)
+                                String.format(java.util.Locale.getDefault(), "%.1f min", progressSummary.averageSessionMinutes)
                             } else {
                                 "0.0 min"
                             }
@@ -415,7 +440,11 @@ fun ProgressScreen(
                                 color = LumyrinthColors.TextSecondary,
                             )
                             Text(
-                                text = "${progressSummary.activeDates.size} active days",
+                                text = pluralStringResource(
+                                    R.plurals.active_days,
+                                    progressSummary.activeDates.size,
+                                    progressSummary.activeDates.size,
+                                ),
                                 style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
                                 color = Color(0xFF38BDF8),
                             )

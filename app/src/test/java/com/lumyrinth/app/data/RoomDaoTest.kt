@@ -63,6 +63,29 @@ class RoomDaoTest {
     }
 
     @Test
+    fun sessionDao_exactSeconds_driveAggregatesWithoutRoundingEachSession() = runBlocking {
+        val base = SessionEntity(
+            rhythmId = "slow_down",
+            rhythmNameSnapshot = "Slow Down",
+            dateIso = "2026-08-26",
+            startedAtEpochMillis = 1L,
+            completedNaturally = false,
+            durationMinutesPlanned = 5,
+            durationMinutesActual = 0,
+            durationSecondsActual = 35,
+            cyclesCompleted = 1,
+            soundOn = false,
+            hapticsOn = false,
+        )
+        database.sessionDao().insert(base)
+        database.sessionDao().insert(base.copy(id = 0, startedAtEpochMillis = 2L, durationSecondsActual = 40))
+
+        assertEquals(1, database.sessionDao().observeTotalDurationMinutes().first())
+        assertEquals(2, database.sessionDao().observeCompleted().first().size)
+        assertEquals(0.625, database.sessionDao().observeAverageDurationMinutes().first(), 0.001)
+    }
+
+    @Test
     fun customRhythmDao_saveAndGetById_returnsRhythm() = runBlocking {
         val rhythm = CustomRhythmEntity(
             id = "custom_1",

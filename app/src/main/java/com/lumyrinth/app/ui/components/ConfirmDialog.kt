@@ -3,6 +3,7 @@ package com.lumyrinth.app.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -168,7 +169,7 @@ fun ConfirmDialog(
                             .background(confirmBg)
                             .clickable(
                                 interactionSource = confirmInteraction,
-                                indication = null,
+                                indication = LocalIndication.current,
                                 role = Role.Button,
                                 onClick = onConfirm,
                             )
@@ -200,7 +201,7 @@ fun ConfirmDialog(
                             .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(999.dp))
                             .clickable(
                                 interactionSource = cancelInteraction,
-                                indication = null,
+                                indication = LocalIndication.current,
                                 role = Role.Button,
                                 onClick = onDismiss,
                             )

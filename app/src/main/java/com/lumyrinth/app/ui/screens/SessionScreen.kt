@@ -17,6 +17,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -43,8 +44,8 @@ import androidx.compose.material.icons.rounded.MusicOff
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Vibration
-import androidx.compose.material.icons.rounded.VolumeOff
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -70,14 +71,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lumyrinth.app.domain.BreathPhase
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.ui.components.BreathingCircle
@@ -369,18 +374,13 @@ fun SessionScreen(
 
         Spacer(modifier = Modifier.weight(0.3f))
 
-        // Current Rhythm / Preset quick switch indicator
+        // The active rhythm is locked for the full session.
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color(0x22FFFFFF))
                 .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    role = Role.Button,
-                    onClick = { showQuickSettings = true },
-                )
+                .semantics { stateDescription = "Active rhythm: ${currentRhythm.name}" }
                 .padding(horizontal = 14.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center,
         ) {
@@ -424,6 +424,7 @@ fun SessionScreen(
                 ),
                 color = Color.White,
                 textAlign = TextAlign.Center,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
 
@@ -448,7 +449,7 @@ fun SessionScreen(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = String.format("%d:%02d", remainingMinutes, remainingSecs),
+                text = String.format(java.util.Locale.getDefault(), "%d:%02d", remainingMinutes, remainingSecs),
                 style = LumyrinthTypography.Body.copy(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
@@ -503,7 +504,7 @@ fun SessionScreen(
         ) {
             // Mute / Unmute Volume Button
             CircularControlItem(
-                icon = if (soundOn) Icons.Rounded.VolumeUp else Icons.Rounded.VolumeOff,
+                icon = if (soundOn) Icons.AutoMirrored.Rounded.VolumeUp else Icons.AutoMirrored.Rounded.VolumeOff,
                 contentDescription = if (soundOn) "Mute" else "Unmute",
                 isActive = soundOn,
                 onClick = { soundOn = !soundOn },
@@ -656,7 +657,7 @@ private fun CircularControlItem(
             .border(1.dp, if (isActive) Color(0x33FFFFFF) else Color(0x10FFFFFF), CircleShape)
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onClick,
             ),
@@ -702,9 +703,10 @@ private fun CenterPlayPauseControl(
                 ),
                 shape = CircleShape,
             )
+            .semantics { stateDescription = if (isPaused) "Paused" else "Session running" }
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Button,
                 onClick = onClick,
             ),

@@ -22,6 +22,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -399,7 +400,7 @@ fun WelcomeScreen(
                     modifier = Modifier
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
+                            indication = LocalIndication.current,
                             role = Role.Button,
                             onClick = onOpenTerms,
                         )
@@ -422,7 +423,7 @@ fun WelcomeScreen(
                     modifier = Modifier
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
+                            indication = LocalIndication.current,
                             role = Role.Button,
                             onClick = onOpenPrivacyPolicy,
                         )
@@ -670,7 +671,7 @@ fun GoalItemCard(
             .border(1.dp, cardBorderColor, RoundedCornerShape(20.dp))
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Checkbox,
                 onClick = onToggle,
             )
@@ -934,7 +935,7 @@ fun HapticPreferenceCard(
                 enabled = checked,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(42.dp),
+                    .height(48.dp),
             )
         }
     }
@@ -1013,7 +1014,7 @@ fun SoundPreferenceCard(
                 enabled = checked,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(42.dp),
+                    .height(48.dp),
             )
         }
     }
@@ -1064,7 +1065,7 @@ fun PurplePillSwitch(
             .border(1.dp, trackBorderColor, RoundedCornerShape(999.dp))
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = LocalIndication.current,
                 role = Role.Switch,
                 onClick = { onCheckedChange(!checked) },
             )
@@ -1127,12 +1128,12 @@ fun AnimatedDottedWaveform(
             val envelope = sin(normX * PI).toFloat()
 
             // Primary wave
-            val primaryAngle = (normX * 3.2f * PI + phase).toDouble()
+            val primaryAngle = normX * 3.2f * PI + phase
             val yOffset1 = (sin(primaryAngle) * (height * 0.36f) * envelope * animatedAmplitude).toFloat()
             val y1 = midY + yOffset1
 
             // Secondary harmonic counter-wave
-            val secondaryAngle = (normX * 4.5f * PI - phase * 0.8f).toDouble()
+            val secondaryAngle = normX * 4.5f * PI - phase * 0.8f
             val yOffset2 = (cos(secondaryAngle) * (height * 0.22f) * envelope * animatedAmplitude).toFloat()
             val y2 = midY + yOffset2
 

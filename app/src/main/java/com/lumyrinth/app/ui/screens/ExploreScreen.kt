@@ -9,6 +9,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,12 +24,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
@@ -42,13 +44,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -59,8 +64,8 @@ import com.lumyrinth.app.ui.components.ChipFilter
 import com.lumyrinth.app.ui.components.ChipVariant
 import com.lumyrinth.app.ui.components.ConfirmDialog
 import com.lumyrinth.app.ui.components.ExploreRhythmCard
-import com.lumyrinth.app.ui.components.IconCircleButton
 import com.lumyrinth.app.ui.components.StandardCard
+import com.lumyrinth.app.ui.components.rememberIsReducedMotion
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 
@@ -79,9 +84,10 @@ fun ExploreScreen(
     onEditCustomRhythm: (Rhythm) -> Unit = {},
     onDeleteCustomRhythm: (String) -> Unit = {},
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
     var rhythmToDelete by remember { mutableStateOf<Rhythm?>(null) }
-    var isSearchActive by remember { mutableStateOf(false) }
+    var isSearchActive by rememberSaveable { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     val categories = listOf(
         "all" to "All",
@@ -94,12 +100,17 @@ fun ExploreScreen(
     )
 
     // Staggered screen entrance animation
+    val reducedMotion = rememberIsReducedMotion()
     val animProgress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        animProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
-        )
+    LaunchedEffect(reducedMotion) {
+        if (reducedMotion) {
+            animProgress.snapTo(1f)
+        } else {
+            animProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+            )
+        }
     }
 
     val filteredList = remember(allRhythms, customRhythms, favoriteIds, selectedCategory, searchQuery) {
@@ -136,7 +147,9 @@ fun ExploreScreen(
 
         Column(
             modifier = Modifier
+                .widthIn(max = 720.dp)
                 .fillMaxSize()
+                .align(Alignment.TopCenter)
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp),
         ) {
@@ -166,7 +179,7 @@ fun ExploreScreen(
                     if (!isSearchActive) searchQuery = ""
                 },
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(Color(0xFF160E26)),
             ) {
@@ -192,6 +205,8 @@ fun ExploreScreen(
                     placeholder = { Text("Search rhythms...", style = LumyrinthTypography.Body) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                     shape = RoundedCornerShape(999.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = LumyrinthColors.SurfaceCard,
@@ -232,67 +247,66 @@ fun ExploreScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         // Exercises Content List
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
                 .alpha(animProgress.value)
-                .offset { IntOffset(0, ((1f - animProgress.value) * 30).toInt()) }
-                .verticalScroll(rememberScrollState()),
+                .offset { IntOffset(0, ((1f - animProgress.value) * 30).toInt()) },
             verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 100.dp),
         ) {
             if (filteredList.isEmpty()) {
-                Spacer(modifier = Modifier.height(40.dp))
-                Text(
-                    text = when (selectedCategory) {
-                        "favorites" -> "No favorites yet"
-                        "custom" -> "No custom rhythms yet"
-                        else -> "No rhythms found"
-                    },
-                    style = LumyrinthTypography.Body,
-                    color = LumyrinthColors.TextSecondary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = when (selectedCategory) {
-                        "favorites" -> "Tap the heart on a rhythm to keep it here."
-                        "custom" -> "Create a breathing pattern that feels right for you."
-                        else -> "Clear the search or choose another category."
-                    },
-                    style = LumyrinthTypography.BodySm,
-                    color = LumyrinthColors.TextTertiary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            } else if (selectedCategory == "all" && searchQuery.isBlank()) {
-                // Group by categories like the reference image
-                if (customRhythms.isNotEmpty()) {
-                    Text(
-                        text = "My Rhythms",
-                        style = LumyrinthTypography.H3.copy(
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                        ),
-                        color = LumyrinthColors.TextPrimary,
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        customRhythms.forEach { rhythm ->
-                            val (primary, secondary) = getCategoryOrbColors(rhythm.category)
-                            ExploreRhythmCard(
-                                title = rhythm.name,
-                                patternText = rhythm.patternCode,
-                                durationText = rhythm.durationRangeText,
-                                onClick = { onSelectRhythm(rhythm) },
-                                primaryColor = primary,
-                                secondaryColor = secondary,
-                                onEdit = { onEditCustomRhythm(rhythm) },
-                                onDelete = { rhythmToDelete = rhythm },
-                            )
-                        }
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = when (selectedCategory) {
+                                "favorites" -> "No favorites yet"
+                                "custom" -> "No custom rhythms yet"
+                                else -> "No rhythms found"
+                            },
+                            style = LumyrinthTypography.Body,
+                            color = LumyrinthColors.TextSecondary,
+                            textAlign = TextAlign.Center,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = when (selectedCategory) {
+                                "favorites" -> "Tap the heart on a rhythm to keep it here."
+                                "custom" -> "Create a breathing pattern that feels right for you."
+                                else -> "Clear the search or choose another category."
+                            },
+                            style = LumyrinthTypography.BodySm,
+                            color = LumyrinthColors.TextTertiary,
+                            textAlign = TextAlign.Center,
+                        )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
+                }
+            } else if (selectedCategory == "all" && searchQuery.isBlank()) {
+                if (customRhythms.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "My Rhythms",
+                            style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
+                            color = LumyrinthColors.TextPrimary,
+                        )
+                    }
+                    items(customRhythms, key = { it.id }) { rhythm ->
+                        val (primary, secondary) = getCategoryOrbColors(rhythm.category)
+                        ExploreRhythmCard(
+                            title = rhythm.name,
+                            patternText = rhythm.patternCode,
+                            durationText = rhythm.durationRangeText,
+                            onClick = { onSelectRhythm(rhythm) },
+                            primaryColor = primary,
+                            secondaryColor = secondary,
+                            onEdit = { onEditCustomRhythm(rhythm) },
+                            onDelete = { rhythmToDelete = rhythm },
+                        )
+                    }
                 }
 
                 listOf(
@@ -303,110 +317,66 @@ fun ExploreScreen(
                 ).forEach { (cat, title) ->
                     val sectionItems = allRhythms.filter { it.category == cat }
                     if (sectionItems.isNotEmpty()) {
-                        Text(
-                            text = title,
-                            style = LumyrinthTypography.H3.copy(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            ),
-                            color = LumyrinthColors.TextPrimary,
-                        )
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            sectionItems.forEach { rhythm ->
-                                val (primary, secondary) = getCategoryOrbColors(rhythm.category)
-                                ExploreRhythmCard(
-                                    title = rhythm.name,
-                                    patternText = rhythm.patternCode,
-                                    durationText = rhythm.durationRangeText,
-                                    onClick = { onSelectRhythm(rhythm) },
-                                    primaryColor = primary,
-                                    secondaryColor = secondary,
-                                )
-                            }
+                        item {
+                            Text(
+                                text = title,
+                                style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
+                                color = LumyrinthColors.TextPrimary,
+                            )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
+                        items(sectionItems, key = { it.id }) { rhythm ->
+                            val (primary, secondary) = getCategoryOrbColors(rhythm.category)
+                            ExploreRhythmCard(
+                                title = rhythm.name,
+                                patternText = rhythm.patternCode,
+                                durationText = rhythm.durationRangeText,
+                                onClick = { onSelectRhythm(rhythm) },
+                                primaryColor = primary,
+                                secondaryColor = secondary,
+                            )
+                        }
                     }
                 }
             } else {
-                // Single Category or Search Results
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    filteredList.forEach { rhythm ->
-                        val (primary, secondary) = getCategoryOrbColors(rhythm.category)
-                        ExploreRhythmCard(
-                            title = rhythm.name,
-                            patternText = rhythm.patternCode,
-                            durationText = rhythm.durationRangeText,
-                            onClick = { onSelectRhythm(rhythm) },
-                            primaryColor = primary,
-                            secondaryColor = secondary,
-                            onEdit = if (rhythm.isCustom) {
-                                { onEditCustomRhythm(rhythm) }
-                            } else null,
-                            onDelete = if (rhythm.isCustom) {
-                                { rhythmToDelete = rhythm }
-                            } else null,
-                        )
-                    }
-                }
-            }
-
-            // Create Your Own Rhythm CTA Card
-            StandardCard(
-                modifier = Modifier.padding(top = 4.dp),
-                onClick = onCreateCustomClick,
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(LumyrinthColors.AccentPurple.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Add,
-                                contentDescription = "Create",
-                                tint = LumyrinthColors.AccentPink,
-                                modifier = Modifier.size(22.dp),
-                            )
-                        }
-
-                        Column {
-                            Text(
-                                text = "Create your own rhythm",
-                                style = LumyrinthTypography.H3.copy(
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                ),
-                                color = LumyrinthColors.TextPrimary,
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Customize timings and durations",
-                                style = LumyrinthTypography.BodySm,
-                                color = LumyrinthColors.TextSecondary,
-                            )
-                        }
-                    }
-
-                    IconCircleButton(
-                        icon = Icons.Rounded.Add,
-                        contentDescription = "Create Custom",
-                        onClick = onCreateCustomClick,
+                items(filteredList, key = { it.id }) { rhythm ->
+                    val (primary, secondary) = getCategoryOrbColors(rhythm.category)
+                    ExploreRhythmCard(
+                        title = rhythm.name,
+                        patternText = rhythm.patternCode,
+                        durationText = rhythm.durationRangeText,
+                        onClick = { onSelectRhythm(rhythm) },
+                        primaryColor = primary,
+                        secondaryColor = secondary,
+                        onEdit = if (rhythm.isCustom) ({ onEditCustomRhythm(rhythm) }) else null,
+                        onDelete = if (rhythm.isCustom) ({ rhythmToDelete = rhythm }) else null,
                     )
                 }
             }
 
-            // Generous bottom spacer so content clears floating bottom nav bar
-            Spacer(modifier = Modifier.height(100.dp))
+            item {
+                StandardCard(modifier = Modifier.padding(top = 4.dp), onClick = onCreateCustomClick) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Box(
+                                modifier = Modifier.size(48.dp).clip(CircleShape)
+                                    .background(LumyrinthColors.AccentPurple.copy(alpha = 0.2f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(Icons.Rounded.Add, contentDescription = null, tint = LumyrinthColors.AccentPink)
+                            }
+                            Column {
+                                Text("Create your own rhythm", style = LumyrinthTypography.H3, color = LumyrinthColors.TextPrimary)
+                                Text("Customize timings and durations", style = LumyrinthTypography.BodySm, color = LumyrinthColors.TextSecondary)
+                            }
+                        }
+                        Icon(Icons.Rounded.Add, contentDescription = null, tint = LumyrinthColors.TextSecondary)
+                    }
+                }
+            }
         }
     }
 

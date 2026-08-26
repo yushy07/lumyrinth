@@ -28,16 +28,14 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             }
             val manager = applicationContext.getSystemService(NotificationManager::class.java)
             if (manager != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    val channel = NotificationChannel(
-                        CHANNEL_ID,
-                        applicationContext.getString(R.string.reminder_channel_name),
-                        NotificationManager.IMPORTANCE_DEFAULT,
-                    ).apply {
-                        description = applicationContext.getString(R.string.reminder_channel_description)
-                    }
-                    manager.createNotificationChannel(channel)
+                val channel = NotificationChannel(
+                    CHANNEL_ID,
+                    applicationContext.getString(R.string.reminder_channel_name),
+                    NotificationManager.IMPORTANCE_DEFAULT,
+                ).apply {
+                    description = applicationContext.getString(R.string.reminder_channel_description)
                 }
+                manager.createNotificationChannel(channel)
 
                 val intent = Intent(applicationContext, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

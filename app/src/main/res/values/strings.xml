@@ -15,4 +15,26 @@
     <string name="reminder_channel_description">Gentle daily prompts for mindful breathing</string>
     <string name="reminder_title">Find your rhythm</string>
     <string name="reminder_body">Take a quiet moment to breathe.</string>
+    <string name="progress_empty_title">Your rhythm starts here</string>
+    <string name="progress_empty_body">Complete your first session to begin your rhythm.</string>
+    <plurals name="duration_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <plurals name="duration_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="streak_days">
+        <item quantity="one">%d day rhythm</item>
+        <item quantity="other">%d day rhythm</item>
+    </plurals>
+    <plurals name="active_days">
+        <item quantity="one">%d active day</item>
+        <item quantity="other">%d active days</item>
+    </plurals>
+    <plurals name="cycles">
+        <item quantity="one">%d cycle</item>
+        <item quantity="other">%d cycles</item>
+    </plurals>
 </resources>
