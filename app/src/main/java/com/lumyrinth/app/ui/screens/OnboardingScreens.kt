@@ -102,17 +102,42 @@ import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.sin
 
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.SelfImprovement
+import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material.icons.rounded.Vibration
+import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.rounded.Waves
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import com.lumyrinth.app.R
+import com.lumyrinth.app.ui.theme.LumyrinthThemeTokens
+import kotlinx.coroutines.launch
+
+data class OnboardingSlide(
+    val categoryBadge: String,
+    val title: String,
+    val subtitle: String,
+    val primaryBadge: Pair<ImageVector, String>,
+    val secondaryBadge: Pair<ImageVector, String>,
+    val tertiaryBadge: Pair<ImageVector, String>,
+    val orbType: String,
+)
 
 @Composable
 fun WelcomeScreen(
@@ -122,6 +147,51 @@ fun WelcomeScreen(
 ) {
     val context = LocalContext.current
     val hapticController = remember(context) { HapticController(context) }
+    val palette = LumyrinthThemeTokens.palette
+    val coroutineScope = rememberCoroutineScope()
+
+    val slides = remember {
+        listOf(
+            OnboardingSlide(
+                categoryBadge = "MINDFUL BREATHWORK",
+                title = "Find your inner calm.",
+                subtitle = "Harmonize your breath with celestial visuals, calming haptics, and soothing ambient soundscapes.",
+                primaryBadge = Icons.Rounded.Waves to "4 Rhythms",
+                secondaryBadge = Icons.Rounded.Vibration to "Haptic Cues",
+                tertiaryBadge = Icons.Rounded.Lock to "100% Offline",
+                orbType = "calm",
+            ),
+            OnboardingSlide(
+                categoryBadge = "NEURO-RESPIRATORY PACING",
+                title = "Evidence-based rhythms.",
+                subtitle = "Scientifically backed breath cadences — Box Breathing, 4-7-8 Sleep, Resonance, and Awaken energy.",
+                primaryBadge = Icons.Rounded.SelfImprovement to "Box & 4-7-8",
+                secondaryBadge = Icons.Rounded.GraphicEq to "Resonance Pacing",
+                tertiaryBadge = Icons.Rounded.AutoAwesome to "Custom Speeds",
+                orbType = "rhythm",
+            ),
+            OnboardingSlide(
+                categoryBadge = "MULTI-SENSORY REST",
+                title = "Feel every breath cycle.",
+                subtitle = "Gentle haptic pulses guide your lungs without looking at your screen, paired with procedural ambient audio.",
+                primaryBadge = Icons.Rounded.Vibration to "Tactile Engine",
+                secondaryBadge = Icons.Rounded.VolumeUp to "Sound Immersion",
+                tertiaryBadge = Icons.Rounded.DarkMode to "OLED Dark Mode",
+                orbType = "sensory",
+            ),
+            OnboardingSlide(
+                categoryBadge = "PRIVATE & DISTRACTION FREE",
+                title = "Your sacred sanctuary.",
+                subtitle = "Zero ads, zero accounts required, and zero trackers. Pure mindfulness whenever you need a peaceful breath.",
+                primaryBadge = Icons.Rounded.Lock to "Private by Design",
+                secondaryBadge = Icons.Rounded.Spa to "Mindful Streaks",
+                tertiaryBadge = Icons.Rounded.AutoAwesome to "Circadian Themes",
+                orbType = "sanctuary",
+            ),
+        )
+    }
+
+    val pagerState = rememberPagerState(pageCount = { slides.size })
 
     // Entrance Animation
     val animProgress = remember { Animatable(0f) }
@@ -147,7 +217,7 @@ fun WelcomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LumyrinthColors.BgBase)
+            .background(palette.bgBase)
             .drawBehind {
                 val width = size.width
                 val height = size.height
@@ -156,8 +226,8 @@ fun WelcomeScreen(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0x409333EA),
-                            Color(0x187E22CE),
+                            palette.primaryAccent.copy(alpha = 0.35f),
+                            palette.primaryAccent.copy(alpha = 0.12f),
                             Color.Transparent,
                         ),
                         center = Offset(width * 0.5f, height * 0.12f),
@@ -171,8 +241,8 @@ fun WelcomeScreen(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0x35E879F9),
-                            Color(0x15F43F5E),
+                            palette.secondaryAccent.copy(alpha = 0.30f),
+                            palette.primaryAccent.copy(alpha = 0.10f),
                             Color.Transparent,
                         ),
                         center = Offset(width * 0.5f, height * 0.42f),
@@ -186,7 +256,7 @@ fun WelcomeScreen(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0x224C1D95),
+                            palette.primaryAccent.copy(alpha = 0.18f),
                             Color.Transparent,
                         ),
                         center = Offset(width * 0.5f, height * 0.95f),
@@ -207,7 +277,7 @@ fun WelcomeScreen(
                 )
                 for ((sx, sy, sr) in stars) {
                     drawCircle(
-                        color = Color(0xD0FDA4AF),
+                        color = palette.secondaryAccent.copy(alpha = 0.75f),
                         radius = sr,
                         center = Offset(width * sx, height * sy),
                     )
@@ -218,146 +288,237 @@ fun WelcomeScreen(
             .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // 1. Top Mindful Category Tag & Eye-Catching App Name
-        Column(
+        // 1. Top Header with App Wordmark & Skip Action
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .alpha(animProgress.value)
                 .offset { IntOffset(0, ((1f - animProgress.value) * 24).toInt()) },
-            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            // Category pill badge
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(Color(0x26A855F7))
-                    .border(1.dp, Color(0x3DF1A5FF), RoundedCornerShape(999.dp))
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.AutoAwesome,
-                    contentDescription = null,
-                    tint = Color(0xFFFFB2C9),
-                    modifier = Modifier.size(13.dp),
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "MINDFUL BREATHWORK",
-                    style = LumyrinthTypography.Label.copy(
-                        letterSpacing = 2.2.sp,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFCE7F3),
-                    ),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
+            // Invisible placeholder for balanced alignment
+            Box(modifier = Modifier.size(48.dp))
 
             // Prominent Glowing App Wordmark
             Text(
                 text = "L U M Y R I N T H",
                 style = LumyrinthTypography.BrandTitle.copy(
-                    fontSize = 26.sp,
-                    lineHeight = 32.sp,
-                    letterSpacing = 8.5.sp,
+                    fontSize = 24.sp,
+                    lineHeight = 30.sp,
+                    letterSpacing = 7.5.sp,
                     fontWeight = FontWeight.ExtraBold,
                     brush = Brush.linearGradient(
                         listOf(
-                            Color(0xFFFFFFFF),
+                            Color.White,
                             Color(0xFFFFF1F2),
-                            Color(0xFFFCE7F3),
-                            Color(0xFFE879F9),
-                            Color(0xFFC084FC),
+                            palette.secondaryAccent,
+                            palette.primaryAccent,
                         )
                     ),
                 ),
                 textAlign = TextAlign.Center,
             )
+
+            // Skip button if not on last page
+            if (pagerState.currentPage < slides.size - 1) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current,
+                            role = Role.Button,
+                            onClick = {
+                                hapticController.tick()
+                                onGetStarted()
+                            },
+                        )
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "Skip",
+                        style = LumyrinthTypography.Label.copy(
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = palette.textTertiary,
+                        ),
+                    )
+                }
+            } else {
+                Box(modifier = Modifier.size(48.dp))
+            }
         }
 
-        Spacer(modifier = Modifier.weight(0.7f))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // 2. Center Celestial Lotus GlowOrb
-        Box(
+        // 2. Interactive Swipeable Carousel Pager
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier
-                .alpha(animProgress.value)
-                .scale(0.9f + 0.1f * animProgress.value),
-            contentAlignment = Alignment.Center,
-        ) {
-            GlowOrb(
-                sizeVariant = OrbSize.Lg,
-                centerContent = OrbCenterContent.None,
-                animationState = OrbAnimationState.Idle(),
-            )
-        }
+                .weight(1f)
+                .fillMaxWidth(),
+        ) { page ->
+            val slide = slides[page]
 
-        Spacer(modifier = Modifier.weight(0.7f))
-
-        // 3. Headline & Description
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .alpha(animProgress.value)
-                .offset { IntOffset(0, ((1f - animProgress.value) * 20).toInt()) },
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = "Find your inner calm.",
-                style = LumyrinthTypography.H1.copy(
-                    fontSize = 28.sp,
-                    lineHeight = 34.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.3).sp,
-                ),
-                color = LumyrinthColors.TextPrimary,
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "Harmonize your breath with celestial visuals, calming haptics, and soothing ambient soundscapes.",
-                style = LumyrinthTypography.Body.copy(
-                    fontSize = 14.sp,
-                    lineHeight = 21.sp,
-                    color = LumyrinthColors.TextSecondary,
-                ),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 8.dp),
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 4. Feature Badges Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        // Smooth parallax depth effect during swipe
+                        val pageOffset = (
+                            (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                        )
+                        alpha = 1f - kotlin.math.abs(pageOffset).coerceIn(0f, 0.7f)
+                        val scaleFactor = 0.88f + (1f - kotlin.math.abs(pageOffset)).coerceIn(0f, 1f) * 0.12f
+                        scaleX = scaleFactor
+                        scaleY = scaleFactor
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly,
             ) {
-                FeatureBadge(
-                    icon = Icons.Rounded.Waves,
-                    label = "4 Rhythms",
+                // Category pill badge for current slide
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(palette.primaryAccent.copy(alpha = 0.18f))
+                        .border(1.dp, palette.secondaryAccent.copy(alpha = 0.35f), RoundedCornerShape(999.dp))
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.AutoAwesome,
+                        contentDescription = null,
+                        tint = palette.secondaryAccent,
+                        modifier = Modifier.size(13.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = slide.categoryBadge,
+                        style = LumyrinthTypography.Label.copy(
+                            letterSpacing = 2.0.sp,
+                            fontSize = 10.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFCE7F3),
+                        ),
+                    )
+                }
+
+                // Center Distinctive Celestial Centerpiece per Slide
+                Box(
+                    modifier = Modifier
+                        .alpha(animProgress.value)
+                        .scale(0.92f + 0.08f * animProgress.value),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when (slide.orbType) {
+                        "calm" -> OnboardingCalmOrb()
+                        "rhythm" -> OnboardingRhythmAstrolabe()
+                        "sensory" -> OnboardingSensoryWaves()
+                        "sanctuary" -> OnboardingSanctuaryConstellation()
+                        else -> OnboardingCalmOrb()
+                    }
+                }
+
+                // Headline, Description & Feature Badges for slide
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = slide.title,
+                        style = LumyrinthTypography.H1.copy(
+                            fontSize = 26.sp,
+                            lineHeight = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.3).sp,
+                        ),
+                        color = palette.textPrimary,
+                        textAlign = TextAlign.Center,
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = slide.subtitle,
+                        style = LumyrinthTypography.Body.copy(
+                            fontSize = 13.5.sp,
+                            lineHeight = 20.sp,
+                            color = palette.textSecondary,
+                        ),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Feature Badges Row for current slide
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        FeatureBadge(
+                            icon = slide.primaryBadge.first,
+                            label = slide.primaryBadge.second,
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        FeatureBadge(
+                            icon = slide.secondaryBadge.first,
+                            label = slide.secondaryBadge.second,
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        FeatureBadge(
+                            icon = slide.tertiaryBadge.first,
+                            label = slide.tertiaryBadge.second,
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 3. Interactive Carousel Dots Indicator with Click to Jump
+        Row(
+            modifier = Modifier.padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            for (i in 0 until slides.size) {
+                val isActive = i == pagerState.currentPage
+                val dotWidth by animateDpAsState(
+                    targetValue = if (isActive) 24.dp else 7.dp,
+                    animationSpec = spring(dampingRatio = 0.75f, stiffness = 400f),
+                    label = "dot_width_$i",
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                FeatureBadge(
-                    icon = Icons.Rounded.Vibration,
-                    label = "Haptic Cues",
+                val dotColor by animateColorAsState(
+                    targetValue = if (isActive) palette.secondaryAccent else palette.borderMedium,
+                    label = "dot_color_$i",
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                FeatureBadge(
-                    icon = Icons.Rounded.Lock,
-                    label = "100% Offline",
+
+                Box(
+                    modifier = Modifier
+                        .height(7.dp)
+                        .width(dotWidth)
+                        .clip(CircleShape)
+                        .background(dotColor)
+                        .clickable {
+                            coroutineScope.launch {
+                                hapticController.tick()
+                                pagerState.animateScrollToPage(i)
+                            }
+                        }
                 )
             }
         }
 
-        Spacer(modifier = Modifier.weight(0.8f))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // 5. Bottom CTA & Page indicator
+        // 4. Bottom CTA & Next/Get Started Button
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -365,13 +526,24 @@ fun WelcomeScreen(
                 .offset { IntOffset(0, ((1f - animProgress.value) * 16).toInt()) },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            val isLastPage = pagerState.currentPage == slides.size - 1
+            val buttonLabel = if (isLastPage) "Get Started" else "Continue"
+            val buttonIcon = if (isLastPage) Icons.Rounded.AutoAwesome else Icons.AutoMirrored.Rounded.ArrowForward
+
             PrimaryButton(
-                label = "Get Started",
+                label = buttonLabel,
+                icon = buttonIcon,
                 onClick = {
                     hapticController.tick()
-                    onGetStarted()
+                    if (isLastPage) {
+                        onGetStarted()
+                    } else {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                        }
+                    }
                 },
-                backgroundBrush = LumyrinthColors.GradientButton,
+                backgroundBrush = palette.gradientPrimary,
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -387,7 +559,7 @@ fun WelcomeScreen(
                     text = "By continuing, you agree to our ",
                     style = LumyrinthTypography.Label.copy(
                         fontSize = 11.sp,
-                        color = LumyrinthColors.TextTertiary,
+                        color = palette.textTertiary,
                     ),
                 )
                 Text(
@@ -395,7 +567,7 @@ fun WelcomeScreen(
                     style = LumyrinthTypography.Label.copy(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFFFDA4AF),
+                        color = palette.secondaryAccent,
                     ),
                     modifier = Modifier
                         .clickable(
@@ -410,7 +582,7 @@ fun WelcomeScreen(
                     text = " & ",
                     style = LumyrinthTypography.Label.copy(
                         fontSize = 11.sp,
-                        color = LumyrinthColors.TextTertiary,
+                        color = palette.textTertiary,
                     ),
                 )
                 Text(
@@ -418,7 +590,7 @@ fun WelcomeScreen(
                     style = LumyrinthTypography.Label.copy(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFFFDA4AF),
+                        color = palette.secondaryAccent,
                     ),
                     modifier = Modifier
                         .clickable(
@@ -430,13 +602,6 @@ fun WelcomeScreen(
                         .testTag("welcome_privacy_policy_link"),
                 )
             }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            PageIndicatorDots(
-                total = 4,
-                activeIndex = 0,
-            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -448,18 +613,20 @@ fun FeatureBadge(
     icon: ImageVector,
     label: String,
 ) {
+    val palette = LumyrinthThemeTokens.palette
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clip(RoundedCornerShape(999.dp))
-            .background(Color(0x1A281A42))
-            .border(1.dp, Color(0x2E9333EA), RoundedCornerShape(999.dp))
+            .background(palette.surfaceCard.copy(alpha = 0.65f))
+            .border(1.dp, palette.borderSubtle, RoundedCornerShape(999.dp))
             .padding(horizontal = 10.dp, vertical = 6.dp),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color(0xFFC084FC),
+            tint = palette.primaryAccent,
             modifier = Modifier.size(13.dp),
         )
         Spacer(modifier = Modifier.width(5.dp))
@@ -468,8 +635,560 @@ fun FeatureBadge(
             style = LumyrinthTypography.BodySm.copy(
                 fontSize = 11.5.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFFE2D9F3),
+                color = palette.textPrimary,
             ),
+        )
+    }
+}
+
+/** 1. Calm Breathing Lotus Orb **/
+@Composable
+fun OnboardingCalmOrb(
+    modifier: Modifier = Modifier,
+) {
+    val palette = LumyrinthThemeTokens.palette
+    val infiniteTransition = rememberInfiniteTransition(label = "calm_orb_trans")
+
+    val breatheScale by infiniteTransition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "calm_breathe",
+    )
+
+    val orbitAngle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 14000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "calm_orbit",
+    )
+
+    Canvas(
+        modifier = modifier.size(240.dp),
+    ) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val maxRadius = size.width * 0.46f
+
+        // 1. Broad outer atmospheric bloom
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    palette.primaryAccent.copy(alpha = 0.35f),
+                    palette.secondaryAccent.copy(alpha = 0.12f),
+                    Color.Transparent,
+                ),
+                center = Offset(cx, cy),
+                radius = maxRadius * breatheScale * 1.15f,
+            ),
+            radius = maxRadius * breatheScale * 1.15f,
+            center = Offset(cx, cy),
+        )
+
+        // 2. Secondary luminous aura
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    palette.secondaryAccent.copy(alpha = 0.45f),
+                    palette.primaryAccent.copy(alpha = 0.18f),
+                    Color.Transparent,
+                ),
+                center = Offset(cx, cy),
+                radius = maxRadius * 0.75f * breatheScale,
+            ),
+            radius = maxRadius * 0.75f * breatheScale,
+            center = Offset(cx, cy),
+        )
+
+        // 3. Shimmering halo rings
+        drawCircle(
+            color = palette.secondaryAccent.copy(alpha = 0.35f),
+            radius = maxRadius * 0.82f * breatheScale,
+            center = Offset(cx, cy),
+            style = Stroke(
+                width = 1.5.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f), 0f),
+            ),
+        )
+
+        drawCircle(
+            color = palette.primaryAccent.copy(alpha = 0.45f),
+            radius = maxRadius * 0.62f,
+            center = Offset(cx, cy),
+            style = Stroke(width = 1.dp.toPx()),
+        )
+
+        // 4. Orbiting stardust satellites
+        val numSatellites = 6
+        for (i in 0 until numSatellites) {
+            val angleDeg = orbitAngle + (i * 360f / numSatellites)
+            val rad = angleDeg * (PI.toFloat() / 180f)
+            val dist = maxRadius * (0.65f + 0.18f * sin(rad * 2f))
+            val sx = cx + dist * cos(rad)
+            val sy = cy + dist * sin(rad)
+            val dotRadius = if (i % 2 == 0) 3.5.dp.toPx() else 2.2.dp.toPx()
+
+            drawCircle(
+                color = Color.White.copy(alpha = 0.85f),
+                radius = dotRadius,
+                center = Offset(sx, sy),
+            )
+            drawCircle(
+                color = palette.secondaryAccent.copy(alpha = 0.5f),
+                radius = dotRadius * 2.2f,
+                center = Offset(sx, sy),
+            )
+        }
+
+        // 5. Central glowing core
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color.White,
+                    palette.secondaryAccent,
+                    palette.primaryAccent,
+                ),
+                center = Offset(cx, cy),
+                radius = maxRadius * 0.28f * breatheScale,
+            ),
+            radius = maxRadius * 0.28f * breatheScale,
+            center = Offset(cx, cy),
+        )
+
+        // Ultra-bright central pinpoint
+        drawCircle(
+            color = Color.White,
+            radius = maxRadius * 0.10f * breatheScale,
+            center = Offset(cx, cy),
+        )
+    }
+}
+
+/** 2. Sacred Neuro-Respiratory Astrolabe **/
+@Composable
+fun OnboardingRhythmAstrolabe(
+    modifier: Modifier = Modifier,
+) {
+    val palette = LumyrinthThemeTokens.palette
+    val infiniteTransition = rememberInfiniteTransition(label = "astrolabe_trans")
+
+    val outerRot by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "astrolabe_outer_rot",
+    )
+
+    val innerRot by infiniteTransition.animateFloat(
+        initialValue = 360f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 14000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "astrolabe_inner_rot",
+    )
+
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.90f,
+        targetValue = 1.10f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "astrolabe_pulse",
+    )
+
+    Canvas(
+        modifier = modifier.size(240.dp),
+    ) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val maxR = size.width * 0.45f
+
+        // Ambient radial background glow
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    palette.primaryAccent.copy(alpha = 0.32f),
+                    palette.secondaryAccent.copy(alpha = 0.10f),
+                    Color.Transparent,
+                ),
+                center = Offset(cx, cy),
+                radius = maxR * 1.15f * pulseScale,
+            ),
+            radius = maxR * 1.15f * pulseScale,
+            center = Offset(cx, cy),
+        )
+
+        // Outer Gear Astrolabe Ring (Clockwise)
+        rotate(outerRot, pivot = Offset(cx, cy)) {
+            drawCircle(
+                color = palette.borderMedium,
+                radius = maxR * 0.92f,
+                center = Offset(cx, cy),
+                style = Stroke(
+                    width = 1.2.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 8f), 0f),
+                ),
+            )
+
+            // 4 Cardinal Quadrant Nodes (Inhale, Hold In, Exhale, Hold Out)
+            for (i in 0 until 4) {
+                val ang = i * 90f * (PI.toFloat() / 180f)
+                val nodeX = cx + maxR * 0.92f * cos(ang)
+                val nodeY = cy + maxR * 0.92f * sin(ang)
+
+                drawCircle(
+                    color = palette.secondaryAccent,
+                    radius = 4.dp.toPx(),
+                    center = Offset(nodeX, nodeY),
+                )
+                drawCircle(
+                    color = Color.White,
+                    radius = 2.dp.toPx(),
+                    center = Offset(nodeX, nodeY),
+                )
+            }
+        }
+
+        // Middle Concentric Rhythm Ring
+        drawCircle(
+            color = palette.primaryAccent.copy(alpha = 0.5f),
+            radius = maxR * 0.72f * pulseScale,
+            center = Offset(cx, cy),
+            style = Stroke(width = 1.5.dp.toPx()),
+        )
+
+        // Inner Sacred Cadence Ring (Counter-Clockwise)
+        rotate(innerRot, pivot = Offset(cx, cy)) {
+            drawCircle(
+                color = palette.secondaryAccent.copy(alpha = 0.45f),
+                radius = maxR * 0.50f,
+                center = Offset(cx, cy),
+                style = Stroke(
+                    width = 1.5.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f),
+                ),
+            )
+
+            // Geometric 8-pointed sacred star lines
+            val pts = 8
+            val path = Path()
+            for (p in 0 until pts) {
+                val r = if (p % 2 == 0) maxR * 0.48f else maxR * 0.28f
+                val ang = (p * (360f / pts)) * (PI.toFloat() / 180f)
+                val px = cx + r * cos(ang)
+                val py = cy + r * sin(ang)
+                if (p == 0) path.moveTo(px, py) else path.lineTo(px, py)
+            }
+            path.close()
+
+            drawPath(
+                path = path,
+                color = palette.secondaryAccent.copy(alpha = 0.35f),
+                style = Stroke(width = 1.2.dp.toPx()),
+            )
+        }
+
+        // Central Pulsing Cadence Core
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color.White,
+                    palette.primaryAccent,
+                    Color.Transparent,
+                ),
+                center = Offset(cx, cy),
+                radius = maxR * 0.22f * pulseScale,
+            ),
+            radius = maxR * 0.22f * pulseScale,
+            center = Offset(cx, cy),
+        )
+
+        drawCircle(
+            color = Color.White,
+            radius = maxR * 0.08f * pulseScale,
+            center = Offset(cx, cy),
+        )
+    }
+}
+
+/** 3. Multi-Sensory Tactile & Acoustic Soundwave Ripples **/
+@Composable
+fun OnboardingSensoryWaves(
+    modifier: Modifier = Modifier,
+) {
+    val palette = LumyrinthThemeTokens.palette
+    val infiniteTransition = rememberInfiniteTransition(label = "sensory_waves_trans")
+
+    val wavePhase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "wave_phase",
+    )
+
+    val barPulse by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "bar_pulse",
+    )
+
+    Canvas(
+        modifier = modifier.size(240.dp),
+    ) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val maxR = size.width * 0.45f
+
+        // Ambient soundscape glow
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    palette.secondaryAccent.copy(alpha = 0.30f),
+                    palette.primaryAccent.copy(alpha = 0.12f),
+                    Color.Transparent,
+                ),
+                center = Offset(cx, cy),
+                radius = maxR * 1.15f,
+            ),
+            radius = maxR * 1.15f,
+            center = Offset(cx, cy),
+        )
+
+        // 4 Propagating Acoustic Ripple Rings
+        val rippleCount = 4
+        for (i in 0 until rippleCount) {
+            val progress = (wavePhase + i.toFloat() / rippleCount) % 1f
+            val r = maxR * 0.20f + maxR * 0.75f * progress
+            val alpha = (1f - progress).coerceIn(0f, 1f) * 0.60f
+
+            drawCircle(
+                color = palette.secondaryAccent.copy(alpha = alpha),
+                radius = r,
+                center = Offset(cx, cy),
+                style = Stroke(
+                    width = (2.2f * (1f - progress * 0.5f)).dp.toPx(),
+                    pathEffect = if (i % 2 == 1) PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f) else null,
+                ),
+            )
+        }
+
+        // Haptic Vibration Orbit Dots (tactile feedback pulses)
+        val hapticNodes = 12
+        for (j in 0 until hapticNodes) {
+            val angle = j * (360f / hapticNodes) * (PI.toFloat() / 180f)
+            val vibrationOffset = sin(wavePhase * 2f * PI.toFloat() + j) * 4.dp.toPx()
+            val r = maxR * 0.68f + vibrationOffset
+            val nx = cx + r * cos(angle)
+            val ny = cy + r * sin(angle)
+
+            drawCircle(
+                color = palette.primaryAccent.copy(alpha = 0.75f),
+                radius = 2.5.dp.toPx(),
+                center = Offset(nx, ny),
+            )
+        }
+
+        // Center Acoustic Equalizer Waves
+        val barCount = 7
+        val barWidth = 3.5.dp.toPx()
+        val spacing = 5.dp.toPx()
+        val totalW = barCount * barWidth + (barCount - 1) * spacing
+        val startX = cx - totalW / 2f
+
+        for (k in 0 until barCount) {
+            val factor = sin((k.toFloat() / (barCount - 1)) * PI.toFloat())
+            val barH = (maxR * 0.32f) * (0.35f + 0.65f * factor * barPulse)
+            val bx = startX + k * (barWidth + spacing)
+
+            drawRoundRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.White,
+                        palette.secondaryAccent,
+                        palette.primaryAccent,
+                    ),
+                    startY = cy - barH,
+                    endY = cy + barH,
+                ),
+                topLeft = Offset(bx, cy - barH),
+                size = androidx.compose.ui.geometry.Size(barWidth, barH * 2f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(999f, 999f),
+            )
+        }
+    }
+}
+
+/** 4. Sacred Constellation & Cosmic Sanctuary Shield **/
+@Composable
+fun OnboardingSanctuaryConstellation(
+    modifier: Modifier = Modifier,
+) {
+    val palette = LumyrinthThemeTokens.palette
+    val infiniteTransition = rememberInfiniteTransition(label = "sanctuary_trans")
+
+    val constellationRot by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 26000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "constellation_rot",
+    )
+
+    val shieldGlow by infiniteTransition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "shield_glow",
+    )
+
+    Canvas(
+        modifier = modifier.size(240.dp),
+    ) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val maxR = size.width * 0.45f
+
+        // 1. Deep protective radiant sanctuary aura
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    palette.primaryAccent.copy(alpha = 0.35f),
+                    palette.secondaryAccent.copy(alpha = 0.12f),
+                    Color.Transparent,
+                ),
+                center = Offset(cx, cy),
+                radius = maxR * 1.15f * shieldGlow,
+            ),
+            radius = maxR * 1.15f * shieldGlow,
+            center = Offset(cx, cy),
+        )
+
+        // 2. Outer Protective Sanctuary Hexagon / Shield Ring
+        drawCircle(
+            color = palette.secondaryAccent.copy(alpha = 0.40f),
+            radius = maxR * 0.90f * shieldGlow,
+            center = Offset(cx, cy),
+            style = Stroke(
+                width = 1.5.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 10f), 0f),
+            ),
+        )
+
+        // 3. Rotating Constellation Starlight Web
+        rotate(constellationRot, pivot = Offset(cx, cy)) {
+            val starNodes = listOf(
+                Pair(0f, 0.80f),
+                Pair(60f, 0.70f),
+                Pair(120f, 0.82f),
+                Pair(180f, 0.72f),
+                Pair(240f, 0.80f),
+                Pair(300f, 0.68f),
+            )
+
+            // Draw constellation lines connecting outer stars to each other and to center
+            val starPositions = starNodes.map { (deg, distFraction) ->
+                val rad = deg * (PI.toFloat() / 180f)
+                val r = maxR * distFraction
+                Offset(cx + r * cos(rad), cy + r * sin(rad))
+            }
+
+            for (i in starPositions.indices) {
+                val p1 = starPositions[i]
+                val p2 = starPositions[(i + 1) % starPositions.size]
+                // Inter-star line
+                drawLine(
+                    color = palette.secondaryAccent.copy(alpha = 0.35f),
+                    start = p1,
+                    end = p2,
+                    strokeWidth = 1.dp.toPx(),
+                    cap = StrokeCap.Round,
+                )
+                // Center anchor starlight beam
+                drawLine(
+                    color = palette.primaryAccent.copy(alpha = 0.25f),
+                    start = Offset(cx, cy),
+                    end = p1,
+                    strokeWidth = 0.8.dp.toPx(),
+                    cap = StrokeCap.Round,
+                )
+            }
+
+            // Draw star gems at each vertex
+            for (pos in starPositions) {
+                drawCircle(
+                    color = palette.secondaryAccent.copy(alpha = 0.4f),
+                    radius = 5.dp.toPx(),
+                    center = pos,
+                )
+                drawCircle(
+                    color = Color.White,
+                    radius = 2.5.dp.toPx(),
+                    center = pos,
+                )
+            }
+        }
+
+        // 4. Inner Crystalline Diamond Shield
+        rotate(-constellationRot * 0.6f, pivot = Offset(cx, cy)) {
+            val diamondPath = Path().apply {
+                moveTo(cx, cy - maxR * 0.42f)
+                lineTo(cx + maxR * 0.42f, cy)
+                lineTo(cx, cy + maxR * 0.42f)
+                lineTo(cx - maxR * 0.42f, cy)
+                close()
+            }
+
+            drawPath(
+                path = diamondPath,
+                color = palette.primaryAccent.copy(alpha = 0.45f),
+                style = Stroke(width = 1.5.dp.toPx()),
+            )
+        }
+
+        // 5. Central Sanctuary Radiant Core
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color.White,
+                    palette.secondaryAccent,
+                    palette.primaryAccent,
+                    Color.Transparent,
+                ),
+                center = Offset(cx, cy),
+                radius = maxR * 0.26f * shieldGlow,
+            ),
+            radius = maxR * 0.26f * shieldGlow,
+            center = Offset(cx, cy),
+        )
+
+        drawCircle(
+            color = Color.White,
+            radius = maxR * 0.09f * shieldGlow,
+            center = Offset(cx, cy),
         )
     }
 }

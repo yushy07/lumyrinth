@@ -1,17 +1,22 @@
 package com.lumyrinth.app.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,8 +34,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthThemeTokens
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
@@ -42,6 +49,7 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     loading: Boolean = false,
+    icon: ImageVector? = null,
     backgroundBrush: Brush? = null,
 ) {
     val palette = LumyrinthThemeTokens.palette
@@ -50,11 +58,12 @@ fun PrimaryButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed && enabled && !loading) 0.97f else 1.0f,
+        targetValue = if (isPressed && enabled && !loading) 0.965f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
         label = "primary_button_scale",
     )
 
-    val shadowElevation = if (enabled && !loading) 8.dp else 0.dp
+    val shadowElevation = if (enabled && !loading) 10.dp else 0.dp
 
     Box(
         modifier = modifier
@@ -64,14 +73,27 @@ fun PrimaryButton(
             .shadow(
                 elevation = shadowElevation,
                 shape = RoundedCornerShape(999.dp),
-                spotColor = palette.primaryAccent.copy(alpha = 0.45f),
-                ambientColor = palette.secondaryAccent.copy(alpha = 0.35f),
+                spotColor = palette.primaryAccent.copy(alpha = 0.55f),
+                ambientColor = palette.secondaryAccent.copy(alpha = 0.40f),
             )
             .clip(RoundedCornerShape(999.dp))
             .background(
                 if (enabled) resolvedBrush else Brush.linearGradient(
                     listOf(palette.surfaceCardAlt, palette.surfaceCardAlt)
                 )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.verticalGradient(
+                    colors = if (enabled) listOf(
+                        Color.White.copy(alpha = 0.45f),
+                        Color.White.copy(alpha = 0.05f),
+                    ) else listOf(
+                        Color.Transparent,
+                        Color.Transparent,
+                    )
+                ),
+                shape = RoundedCornerShape(999.dp),
             )
             .clickable(
                 enabled = enabled && !loading,
@@ -89,11 +111,30 @@ fun PrimaryButton(
                 strokeWidth = 2.dp,
             )
         } else {
-            Text(
-                text = label,
-                style = LumyrinthTypography.Button,
-                color = if (enabled) LumyrinthColors.TextPrimary else LumyrinthColors.TextTertiary,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(horizontal = 24.dp),
+            ) {
+                Text(
+                    text = label,
+                    style = LumyrinthTypography.Button.copy(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.3.sp,
+                    ),
+                    color = if (enabled) Color.White else LumyrinthColors.TextTertiary,
+                )
+                if (icon != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = if (enabled) Color.White else LumyrinthColors.TextTertiary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
         }
     }
 }
