@@ -77,10 +77,10 @@ dependencies {
             because("Upgrade jdom2 to 2.0.6.1 for security and compatibility")
         }
         implementation(libs.bouncycastle.bcprov) {
-            because("Upgrade bcprov-jdk18on to 1.80 or later")
+            because("Keep the transitive cryptography provider on the patched release")
         }
         implementation(libs.bouncycastle.bcpkix) {
-            because("Upgrade bcpkix-jdk18on to 1.80 or later")
+            because("Keep the transitive PKIX provider on the patched release")
         }
         implementation(libs.jose4j) {
             because("Upgrade jose4j to 0.9.6 or later")
@@ -98,7 +98,10 @@ dependencies {
             because("Upgrade netty-codec-http2 to 4.1.118.Final or later")
         }
         implementation(libs.netty.handler.proxy) {
-            because("Upgrade netty-handler-proxy to 4.1.118.Final or later")
+            because("Keep the transitive Netty stack on one patched release")
+        }
+        implementation(libs.netty.handler) {
+            because("Align all Netty modules to the patched release")
         }
     }
     implementation(libs.androidx.core.ktx)

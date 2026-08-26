@@ -8,14 +8,17 @@ buildscript {
     configurations.all {
         resolutionStrategy {
             force("org.jdom:jdom2:2.0.6.1")
-            force("org.bouncycastle:bcprov-jdk18on:1.80")
-            force("org.bouncycastle:bcpkix-jdk18on:1.80")
+            force("org.bouncycastle:bcprov-jdk18on:1.85.2")
+            force("org.bouncycastle:bcpkix-jdk18on:1.85.2")
             force("org.bitbucket.b_c:jose4j:0.9.6")
             force("org.apache.commons:commons-lang3:3.20.0")
-            force("io.netty:netty-codec:4.1.118.Final")
-            force("io.netty:netty-codec-http:4.1.118.Final")
-            force("io.netty:netty-codec-http2:4.1.118.Final")
-            force("io.netty:netty-handler-proxy:4.1.118.Final")
+            force("org.apache.httpcomponents:httpclient:4.5.14")
+            eachDependency {
+                if (requested.group == "io.netty") useVersion("4.1.137.Final")
+                if (requested.group == "org.bouncycastle" && requested.name.endsWith("jdk18on")) {
+                    useVersion("1.85.2")
+                }
+            }
         }
     }
 }
@@ -24,14 +27,17 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force("org.jdom:jdom2:2.0.6.1")
-            force("org.bouncycastle:bcprov-jdk18on:1.80")
-            force("org.bouncycastle:bcpkix-jdk18on:1.80")
+            force("org.bouncycastle:bcprov-jdk18on:1.85.2")
+            force("org.bouncycastle:bcpkix-jdk18on:1.85.2")
             force("org.bitbucket.b_c:jose4j:0.9.6")
             force("org.apache.commons:commons-lang3:3.20.0")
-            force("io.netty:netty-codec:4.1.118.Final")
-            force("io.netty:netty-codec-http:4.1.118.Final")
-            force("io.netty:netty-codec-http2:4.1.118.Final")
-            force("io.netty:netty-handler-proxy:4.1.118.Final")
+            force("org.apache.httpcomponents:httpclient:4.5.14")
+            eachDependency {
+                if (requested.group == "io.netty") useVersion("4.1.137.Final")
+                if (requested.group == "org.bouncycastle" && requested.name.endsWith("jdk18on")) {
+                    useVersion("1.85.2")
+                }
+            }
         }
     }
 }
