@@ -22,27 +22,28 @@ class CustomRhythmViewModel(
         defaultDurationMinutes: Int,
         soundDefault: Boolean = true,
         hapticsDefault: Boolean = true,
-        onComplete: () -> Unit
+        onComplete: (String) -> Unit
     ) {
         val totalCycleSeconds = inhaleSeconds + hold1Seconds + exhaleSeconds + hold2Seconds
         if (totalCycleSeconds <= 0 || name.isBlank()) return
 
-        val entity = CustomRhythmEntity(
-            id = existingId ?: UUID.randomUUID().toString(),
-            name = name.ifBlank { "Custom Rhythm" },
-            inhaleSeconds = inhaleSeconds.coerceAtLeast(0),
-            hold1Seconds = hold1Seconds.coerceAtLeast(0),
-            exhaleSeconds = exhaleSeconds.coerceAtLeast(0),
-            hold2Seconds = hold2Seconds.coerceAtLeast(0),
-            defaultDurationMinutes = defaultDurationMinutes.coerceAtLeast(1),
-            soundDefault = soundDefault,
-            hapticsDefault = hapticsDefault,
-            createdAtEpochMillis = System.currentTimeMillis()
-        )
-
         viewModelScope.launch {
+            val finalId = existingId ?: UUID.randomUUID().toString()
+            val existing = existingId?.let { sessionRepo.getCustomRhythm(it) }
+            val entity = CustomRhythmEntity(
+                id = finalId,
+                name = name.trim(),
+                inhaleSeconds = inhaleSeconds.coerceAtLeast(0),
+                hold1Seconds = hold1Seconds.coerceAtLeast(0),
+                exhaleSeconds = exhaleSeconds.coerceAtLeast(0),
+                hold2Seconds = hold2Seconds.coerceAtLeast(0),
+                defaultDurationMinutes = defaultDurationMinutes.coerceAtLeast(1),
+                soundDefault = soundDefault,
+                hapticsDefault = hapticsDefault,
+                createdAtEpochMillis = existing?.createdAtEpochMillis ?: System.currentTimeMillis(),
+            )
             sessionRepo.saveCustomRhythm(entity)
-            onComplete()
+            onComplete(finalId)
         }
     }
 

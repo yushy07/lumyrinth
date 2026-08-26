@@ -22,7 +22,7 @@ data class SessionEntity(
     val completedNaturally: Boolean,
     val durationMinutesPlanned: Int,
     val durationMinutesActual: Int,
-    val durationSecondsActual: Int = 0,
+    @ColumnInfo(defaultValue = "0") val durationSecondsActual: Int = 0,
     val cyclesCompleted: Int,
     val soundOn: Boolean,
     val hapticsOn: Boolean,

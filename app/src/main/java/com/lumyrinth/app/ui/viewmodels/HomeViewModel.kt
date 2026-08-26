@@ -22,11 +22,11 @@ class HomeViewModel(
     private val prefsRepo: UserPreferencesRepository,
 ) : ViewModel() {
 
-    val userPreferences: StateFlow<UserPreferences> = prefsRepo.preferences
+    val userPreferences: StateFlow<UserPreferences?> = prefsRepo.preferences
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = UserPreferences()
+            initialValue = null
         )
 
     val progressSummary: StateFlow<ProgressSummary> = sessionRepo.sessions

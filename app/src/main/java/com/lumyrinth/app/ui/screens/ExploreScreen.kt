@@ -71,6 +71,7 @@ import com.lumyrinth.app.ui.components.SectionTheme
 fun ExploreScreen(
     allRhythms: List<Rhythm>,
     customRhythms: List<Rhythm>,
+    favoriteIds: Set<String>,
     selectedCategory: String, // "all", "relax", "focus", "sleep", "energy"
     onCategoryChange: (String) -> Unit,
     onSelectRhythm: (Rhythm) -> Unit,
@@ -88,6 +89,8 @@ fun ExploreScreen(
         "focus" to "Focus",
         "sleep" to "Sleep",
         "energy" to "Energy",
+        "favorites" to "Favorites",
+        "custom" to "My rhythms",
     )
 
     // Staggered screen entrance animation
@@ -99,7 +102,7 @@ fun ExploreScreen(
         )
     }
 
-    val filteredList = remember(allRhythms, customRhythms, selectedCategory, searchQuery) {
+    val filteredList = remember(allRhythms, customRhythms, favoriteIds, selectedCategory, searchQuery) {
         val combined = customRhythms + allRhythms
         val searchFiltered = if (searchQuery.isBlank()) {
             combined
@@ -110,10 +113,11 @@ fun ExploreScreen(
             }
         }
 
-        if (selectedCategory == "all" || searchQuery.isNotBlank()) {
-            searchFiltered
-        } else {
-            searchFiltered.filter { it.category.id.equals(selectedCategory, ignoreCase = true) }
+        when {
+            searchQuery.isNotBlank() || selectedCategory == "all" -> searchFiltered
+            selectedCategory == "favorites" -> searchFiltered.filter { it.id in favoriteIds }
+            selectedCategory == "custom" -> searchFiltered.filter { it.isCustom }
+            else -> searchFiltered.filter { it.category.id.equals(selectedCategory, ignoreCase = true) }
         }
     }
 
@@ -240,7 +244,11 @@ fun ExploreScreen(
             if (filteredList.isEmpty()) {
                 Spacer(modifier = Modifier.height(40.dp))
                 Text(
-                    text = "No exercises found",
+                    text = when (selectedCategory) {
+                        "favorites" -> "No favorites yet"
+                        "custom" -> "No custom rhythms yet"
+                        else -> "No rhythms found"
+                    },
                     style = LumyrinthTypography.Body,
                     color = LumyrinthColors.TextSecondary,
                     textAlign = TextAlign.Center,
@@ -248,7 +256,11 @@ fun ExploreScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Try searching for something else or create a custom rhythm.",
+                    text = when (selectedCategory) {
+                        "favorites" -> "Tap the heart on a rhythm to keep it here."
+                        "custom" -> "Create a breathing pattern that feels right for you."
+                        else -> "Clear the search or choose another category."
+                    },
                     style = LumyrinthTypography.BodySm,
                     color = LumyrinthColors.TextTertiary,
                     textAlign = TextAlign.Center,

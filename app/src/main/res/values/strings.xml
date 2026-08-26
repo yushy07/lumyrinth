@@ -11,4 +11,8 @@
     <string name="cd_play_button">Start session</string>
     <string name="cd_pause_button">Pause session</string>
     <string name="cd_settings_button">Open settings</string>
+    <string name="reminder_channel_name">Lumyrinth practice reminders</string>
+    <string name="reminder_channel_description">Gentle daily prompts for mindful breathing</string>
+    <string name="reminder_title">Find your rhythm</string>
+    <string name="reminder_body">Take a quiet moment to breathe.</string>
 </resources>

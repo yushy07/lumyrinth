@@ -33,8 +33,15 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +58,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.lumyrinth.app.data.UserPreferences
+import com.lumyrinth.app.BuildConfig
 import com.lumyrinth.app.ui.components.ConfirmDialog
 import com.lumyrinth.app.ui.components.StandardCard
 import com.lumyrinth.app.ui.components.ToggleSwitch
@@ -60,12 +68,15 @@ import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import com.lumyrinth.app.ui.components.CosmicSectionBackground
 import com.lumyrinth.app.ui.components.SectionTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     userPreferences: UserPreferences,
     onToggleHaptics: (Boolean) -> Unit,
     onToggleSound: (Boolean) -> Unit,
     onToggleReminder: (Boolean) -> Unit,
+    onReminderTimeChange: (String) -> Unit,
+    onAmbientSoundscapeChange: (String) -> Unit,
     onRetakeOnboarding: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onOpenTerms: () -> Unit,
@@ -74,6 +85,56 @@ fun SettingsScreen(
     val context = LocalContext.current
     var permissionDeniedNote by remember { mutableStateOf(false) }
     var showClearDataDialog by remember { mutableStateOf(false) }
+    var showReminderTimeDialog by remember { mutableStateOf(false) }
+    var showSoundscapeDialog by remember { mutableStateOf(false) }
+
+    if (showReminderTimeDialog) {
+        val parts = userPreferences.dailyReminderTime.split(":")
+        val timeState = rememberTimePickerState(
+            initialHour = parts.getOrNull(0)?.toIntOrNull() ?: 20,
+            initialMinute = parts.getOrNull(1)?.toIntOrNull() ?: 0,
+            is24Hour = true,
+        )
+        AlertDialog(
+            onDismissRequest = { showReminderTimeDialog = false },
+            title = { Text("Reminder time") },
+            text = { TimePicker(state = timeState) },
+            confirmButton = {
+                TextButton(onClick = {
+                    onReminderTimeChange("%02d:%02d".format(timeState.hour, timeState.minute))
+                    showReminderTimeDialog = false
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReminderTimeDialog = false }) { Text("Cancel") }
+            },
+        )
+    }
+
+    if (showSoundscapeDialog) {
+        val options = listOf("None", "Rain", "Night", "Ocean", "Forest", "Fireplace", "Stream", "Deep Space")
+        AlertDialog(
+            onDismissRequest = { showSoundscapeDialog = false },
+            title = { Text("Default ambient sound") },
+            text = {
+                Column {
+                    options.forEach { option ->
+                        Text(
+                            text = if (option == userPreferences.ambientSoundscape) "✓  $option" else option,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onAmbientSoundscapeChange(option)
+                                    showSoundscapeDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+        )
+    }
 
     if (showClearDataDialog) {
         ConfirmDialog(
@@ -200,6 +261,13 @@ fun SettingsScreen(
                         checked = userPreferences.soundGuidanceDefault,
                         onCheckedChange = onToggleSound,
                     )
+
+                    SettingsActionRow(
+                        icon = Icons.Rounded.GraphicEq,
+                        title = "Ambient sound",
+                        subtitle = userPreferences.ambientSoundscape,
+                        onClick = { showSoundscapeDialog = true },
+                    )
                 }
             }
 
@@ -255,6 +323,15 @@ fun SettingsScreen(
                             style = LumyrinthTypography.Label,
                             color = LumyrinthColors.AccentPink,
                             modifier = Modifier.padding(start = 36.dp, bottom = 8.dp),
+                        )
+                    }
+
+                    if (userPreferences.dailyReminderEnabled) {
+                        SettingsActionRow(
+                            icon = Icons.Rounded.Schedule,
+                            title = "Reminder time",
+                            subtitle = userPreferences.dailyReminderTime,
+                            onClick = { showReminderTimeDialog = true },
                         )
                     }
                 }
@@ -316,7 +393,7 @@ fun SettingsScreen(
                             color = LumyrinthColors.TextSecondary,
                         )
                         Text(
-                            text = "1.0.0",
+                            text = BuildConfig.VERSION_NAME,
                             style = LumyrinthTypography.BodySm,
                             color = LumyrinthColors.TextTertiary,
                         )
@@ -343,12 +420,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(64.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                role = Role.Button,
-                                onClick = { showClearDataDialog = true },
-                            )
+                            .clickable(role = Role.Button, onClick = { showClearDataDialog = true })
                             .testTag("settings_clear_data_row"),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -406,12 +478,7 @@ private fun SettingsActionRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                role = Role.Button,
-                onClick = onClick,
-            )
+            .clickable(role = Role.Button, onClick = onClick)
             .then(if (testTag.isNotEmpty()) Modifier.testTag(testTag) else Modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -458,7 +525,8 @@ private fun SettingsToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp),
+            .height(64.dp)
+            .clickable(role = Role.Switch) { onCheckedChange(!checked) },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {

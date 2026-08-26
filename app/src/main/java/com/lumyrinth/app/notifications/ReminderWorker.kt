@@ -15,6 +15,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.lumyrinth.app.MainActivity
 import com.lumyrinth.app.R
+import com.lumyrinth.app.data.UserPreferencesRepository
+import kotlinx.coroutines.flow.first
 
 class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
@@ -29,10 +31,10 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     val channel = NotificationChannel(
                         CHANNEL_ID,
-                        "Lumyrinth practice reminders",
+                        applicationContext.getString(R.string.reminder_channel_name),
                         NotificationManager.IMPORTANCE_DEFAULT,
                     ).apply {
-                        description = "Gentle daily prompts for mindful breathing"
+                        description = applicationContext.getString(R.string.reminder_channel_description)
                     }
                     manager.createNotificationChannel(channel)
                 }
@@ -51,17 +53,25 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     REMINDER_ID,
                     NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                         .setSmallIcon(R.drawable.lumyrinth_mark)
-                        .setContentTitle("Find your rhythm")
-                        .setContentText("Take a quiet moment to breathe.")
+                        .setContentTitle(applicationContext.getString(R.string.reminder_title))
+                        .setContentText(applicationContext.getString(R.string.reminder_body))
                         .setContentIntent(pendingIntent)
                         .setAutoCancel(true)
                         .build()
                 )
             }
+            rescheduleIfEnabled()
             Result.success()
         } catch (e: Throwable) {
             Log.w("ReminderWorker", "Failed to post reminder notification", e)
             Result.success()
+        }
+    }
+
+    private suspend fun rescheduleIfEnabled() {
+        val preferences = UserPreferencesRepository(applicationContext).preferences.first()
+        if (preferences.dailyReminderEnabled) {
+            ReminderScheduler.schedule(applicationContext, preferences.dailyReminderTime)
         }
     }
     companion object { const val CHANNEL_ID = "practice_reminders"; const val REMINDER_ID = 101 }

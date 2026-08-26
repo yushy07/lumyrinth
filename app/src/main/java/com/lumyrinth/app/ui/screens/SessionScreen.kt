@@ -59,6 +59,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
@@ -68,6 +69,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -98,6 +100,9 @@ fun SessionScreen(
     durationMinutes: Int,
     initialSoundOn: Boolean,
     initialHapticsOn: Boolean,
+    initialAmbientSound: String,
+    onAmbientSoundChanged: (String) -> Unit,
+    onAmbientSoundStopped: () -> Unit,
     onPhaseTransition: (BreathPhase, soundOn: Boolean, hapticsOn: Boolean) -> Unit,
     onSessionFinished: (
         completedNaturally: Boolean,
@@ -112,23 +117,32 @@ fun SessionScreen(
     val activity = context as? Activity
     val lifecycleOwner = LocalLifecycleOwner.current
     val isReducedMotion = rememberIsReducedMotion()
+    val configuration = LocalConfiguration.current
+    val adaptiveCircleSize = remember(configuration.screenWidthDp, configuration.screenHeightDp) {
+        minOf(configuration.screenWidthDp * 0.72f, configuration.screenHeightDp * 0.42f)
+            .coerceIn(190f, 300f).dp
+    }
 
     // V1 Fixed Rhythm for exact session history tracking
     val currentRhythm = rhythm
     val totalSessionMillis = durationMinutes * 60 * 1000L
-    var elapsedSessionMillis by remember { mutableLongStateOf(0L) }
-    var isPaused by remember { mutableStateOf(false) }
-    var soundOn by remember { mutableStateOf(initialSoundOn) }
-    var hapticsOn by remember { mutableStateOf(initialHapticsOn) }
-    var isCompleting by remember { mutableStateOf(false) }
+    var elapsedSessionMillis by rememberSaveable { mutableLongStateOf(0L) }
+    var isPaused by rememberSaveable { mutableStateOf(false) }
+    var soundOn by rememberSaveable { mutableStateOf(initialSoundOn) }
+    var hapticsOn by rememberSaveable { mutableStateOf(initialHapticsOn) }
+    var ambientSound by rememberSaveable { mutableStateOf(initialAmbientSound) }
+    var isCompleting by rememberSaveable { mutableStateOf(false) }
 
     // Monotonic clock timing anchor using SystemClock.elapsedRealtime()
-    val sessionStartRealtime = remember { SystemClock.elapsedRealtime() }
-    var accumulatedPauseMillis by remember { mutableLongStateOf(0L) }
-    var pauseStartRealtime by remember { mutableLongStateOf(0L) }
+    val sessionStartRealtime = rememberSaveable { SystemClock.elapsedRealtime() }
+    var accumulatedPauseMillis by rememberSaveable { mutableLongStateOf(0L) }
+    var pauseStartRealtime by rememberSaveable { mutableLongStateOf(0L) }
 
-    var showConfirmClose by remember { mutableStateOf(false) }
-    var showQuickSettings by remember { mutableStateOf(false) }
+    var showConfirmClose by rememberSaveable { mutableStateOf(false) }
+    var showQuickSettings by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(ambientSound) { onAmbientSoundChanged(ambientSound) }
+    DisposableEffect(Unit) { onDispose(onAmbientSoundStopped) }
 
     // Screen Wake Lock & Auto-Pause on App Backgrounding (M2.2)
     DisposableEffect(isPaused, lifecycleOwner) {
@@ -156,9 +170,9 @@ fun SessionScreen(
 
     // Active Phases
     val activePhases = remember(currentRhythm) { currentRhythm.activePhases() }
-    var currentPhaseIndex by remember(currentRhythm) { mutableIntStateOf(0) }
-    var phaseElapsedMillis by remember(currentRhythm) { mutableLongStateOf(0L) }
-    var cyclesCompleted by remember { mutableIntStateOf(0) }
+    var currentPhaseIndex by rememberSaveable(currentRhythm.id) { mutableIntStateOf(0) }
+    var phaseElapsedMillis by rememberSaveable(currentRhythm.id) { mutableLongStateOf(0L) }
+    var cyclesCompleted by rememberSaveable { mutableIntStateOf(0) }
 
     val currentPhasePair = activePhases.getOrElse(currentPhaseIndex % activePhases.size) {
         BreathPhase.INHALE to 4
@@ -252,7 +266,7 @@ fun SessionScreen(
             onSessionFinished(
                 true,
                 (elapsedSessionMillis / 1000L).toInt(),
-                cyclesCompleted.coerceAtLeast(1),
+                cyclesCompleted,
                 soundOn,
                 hapticsOn,
             )
@@ -300,15 +314,10 @@ fun SessionScreen(
             // Close 'X' Button
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(Color(0x22FFFFFF))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        role = Role.Button,
-                        onClick = { showConfirmClose = true },
-                    ),
+                    .clickable(role = Role.Button, onClick = { showConfirmClose = true }),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -324,21 +333,16 @@ fun SessionScreen(
                 // Music / Ambient sound toggle button
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(if (soundOn) Color(0x33A855F7) else Color(0x1AFFFFFF))
                         .border(1.dp, if (soundOn) Color(0x55C084FC) else Color(0x11FFFFFF), CircleShape)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            role = Role.Button,
-                            onClick = { soundOn = !soundOn },
-                        ),
+                        .clickable(role = Role.Button, onClick = { soundOn = !soundOn }),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = if (soundOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
-                        contentDescription = "Sound Toggle",
+                        contentDescription = if (soundOn) "Disable guidance tones" else "Enable guidance tones",
                         tint = if (soundOn) Color(0xFFF472B6) else Color(0x88FFFFFF),
                         modifier = Modifier.size(20.dp),
                     )
@@ -347,15 +351,10 @@ fun SessionScreen(
                 // Soundscape / Fine Tune Settings button
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(Color(0x22FFFFFF))
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            role = Role.Button,
-                            onClick = { showQuickSettings = true },
-                        ),
+                        .clickable(role = Role.Button, onClick = { showQuickSettings = true }),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
@@ -432,7 +431,7 @@ fun SessionScreen(
 
         // Center BreathingCircle with Real-Time Scale & Countdown
         BreathingCircle(
-            circleSize = 300.dp,
+            circleSize = adaptiveCircleSize,
             centerContent = OrbCenterContent.Countdown(phaseSecondsRemaining),
             animationState = OrbAnimationState.Breathing(
                 scale = currentOrbScale,
@@ -595,7 +594,7 @@ fun SessionScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Sound Guidance", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
+                    Text("Guidance tones", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
                     ToggleSwitch(checked = soundOn, onCheckedChange = { soundOn = it })
                 }
 
@@ -608,9 +607,24 @@ fun SessionScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Haptic Guidance", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
+                    Text("Haptic cues", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
                     ToggleSwitch(checked = hapticsOn, onCheckedChange = { hapticsOn = it })
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Ambient sound", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
+                Spacer(modifier = Modifier.height(8.dp))
+                listOf("None", "Rain", "Night", "Ocean", "Forest", "Fireplace", "Stream", "Deep Space")
+                    .forEach { option ->
+                        Text(
+                            text = if (ambientSound == option) "✓  $option" else option,
+                            color = if (ambientSound == option) LumyrinthColors.AccentPink else LumyrinthColors.TextSecondary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { ambientSound = option }
+                                .padding(vertical = 10.dp),
+                        )
+                    }
 
                 Spacer(modifier = Modifier.height(24.dp))
             }

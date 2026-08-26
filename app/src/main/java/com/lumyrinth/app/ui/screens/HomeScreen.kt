@@ -48,7 +48,6 @@ import com.lumyrinth.app.domain.PresetRhythms
 import com.lumyrinth.app.domain.ProgressSummary
 import com.lumyrinth.app.domain.Rhythm
 import com.lumyrinth.app.domain.RhythmCategory
-import com.lumyrinth.app.ui.components.BreathingPresetSelector
 import com.lumyrinth.app.ui.components.ChipFilter
 import com.lumyrinth.app.ui.components.ChipVariant
 import com.lumyrinth.app.ui.components.ContinueRhythmCard
@@ -84,18 +83,7 @@ fun HomeScreen(
         }
     }
 
-    var selectedPreset by remember { mutableStateOf(PresetRhythms.square) }
-
-    val presetOptions = remember {
-        listOf(
-            PresetRhythms.square,      // Box Breathing (4-4-4-4)
-            PresetRhythms.deepRest,    // 4-7-8 Technique (4-7-8)
-            PresetRhythms.slowDown,    // Slow Down (4-6)
-            PresetRhythms.equalRhythm, // Equal Rhythm (4-4)
-            PresetRhythms.awaken,      // Awaken (4-2-4-2)
-            PresetRhythms.steady,      // Steady (5-5)
-        )
-    }
+    var selectedPreset by remember(featuredRhythm.id) { mutableStateOf(featuredRhythm) }
 
     // Staggered screen entry animation
     val animProgress = remember { Animatable(0f) }
@@ -106,8 +94,6 @@ fun HomeScreen(
         )
     }
 
-    // Effective last rhythm display: fallback to Slow Down if no sessions yet
-    val displayLastRhythm = lastUsedRhythm ?: PresetRhythms.slowDown
     val displayDurationText = if (progressSummary.latestSession != null) {
         val actualSecs = progressSummary.latestSession.durationSecondsActual
         if (actualSecs > 0) {
@@ -116,7 +102,7 @@ fun HomeScreen(
             "${progressSummary.latestSession.durationMinutesActual} minutes"
         }
     } else {
-        "${displayLastRhythm.defaultDurationMinutes} minutes"
+        ""
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -162,7 +148,7 @@ fun HomeScreen(
                 IconButton(
                     onClick = onProfileClick,
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF1E1433)),
                 ) {
@@ -203,7 +189,7 @@ fun HomeScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "BREATHING PRESETS",
+                            text = "RECOMMENDED FOR YOU",
                                     style = LumyrinthTypography.Label.copy(
                                         letterSpacing = 1.5.sp,
                                         fontWeight = FontWeight.Bold,
@@ -227,25 +213,16 @@ fun HomeScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Preset Selector: Box Breathing, 4-7-8 Technique, Slow Down, etc.
-                        BreathingPresetSelector(
-                            presets = presetOptions,
-                            selectedRhythm = selectedPreset,
-                            onSelectRhythm = { selectedPreset = it },
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Real-Time Animated BreathingCircle synchronized with selected preset speed
+                        // Compact preview keeps the primary action above the fold.
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(220.dp),
+                                .height(128.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             RhythmBreathingCircle(
                                 rhythm = selectedPreset,
-                                circleSize = 210.dp,
+                                circleSize = 116.dp,
                                 showPhaseLabel = true,
                                 showCountdown = true,
                             )
@@ -336,8 +313,8 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Continue your rhythm Section
-                Column(
+                // Continue only when the user has real history.
+                if (lastUsedRhythm != null) Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .alpha(animProgress.value)
@@ -355,9 +332,9 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     ContinueRhythmCard(
-                        title = displayLastRhythm.name,
+                        title = lastUsedRhythm.name,
                         durationText = displayDurationText,
-                        onRepeat = { onRepeatLastSession(displayLastRhythm) },
+                        onRepeat = { onRepeatLastSession(lastUsedRhythm) },
                         icon = Icons.Rounded.Spa,
                         iconTint = Color(0xFFF43F5E),
                     )

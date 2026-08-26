@@ -33,6 +33,17 @@ class SettingsViewModel(
         viewModelScope.launch { prefsRepo.setSoundGuidanceDefault(enabled) }
     }
 
+    fun setAmbientSoundscape(soundscape: String) {
+        viewModelScope.launch { prefsRepo.setAmbientSoundscape(soundscape) }
+    }
+
+    fun setReminderTime(context: Context, time: String) {
+        viewModelScope.launch {
+            prefsRepo.setDailyReminderTime(time)
+            if (userPreferences.value.dailyReminderEnabled) ReminderScheduler.schedule(context, time)
+        }
+    }
+
     fun setDailyReminder(context: Context, enabled: Boolean) {
         viewModelScope.launch {
             prefsRepo.setDailyReminderEnabled(enabled)

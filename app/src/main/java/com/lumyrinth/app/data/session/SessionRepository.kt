@@ -2,6 +2,7 @@ package com.lumyrinth.app.data.session
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 
 class SessionRepository private constructor(private val database: LumyrinthDatabase) {
@@ -30,8 +31,10 @@ class SessionRepository private constructor(private val database: LumyrinthDatab
     suspend fun deleteSession(id: Long) = database.sessionDao().deleteById(id)
     suspend fun clearAllSessions() = database.sessionDao().clearAllSessions()
     suspend fun clearAllData() {
-        database.sessionDao().clearAllSessions()
-        database.customRhythmDao().clearAll()
+        database.withTransaction {
+            database.sessionDao().clearAllSessions()
+            database.customRhythmDao().clearAll()
+        }
     }
 
     suspend fun saveCustomRhythm(rhythm: CustomRhythmEntity) = database.customRhythmDao().save(rhythm)

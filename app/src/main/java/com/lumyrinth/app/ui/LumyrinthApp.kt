@@ -1,57 +1,34 @@
 package com.lumyrinth.app.ui
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.lumyrinth.app.LumyrinthApplication
 import com.lumyrinth.app.R
-import com.lumyrinth.app.audio.GuidanceSoundController
-import com.lumyrinth.app.data.UserPreferences
-import com.lumyrinth.app.data.UserPreferencesRepository
-import com.lumyrinth.app.data.session.CustomRhythmEntity
 import com.lumyrinth.app.data.session.SessionEntity
-import com.lumyrinth.app.ui.viewmodels.CustomRhythmViewModel
-import com.lumyrinth.app.ui.viewmodels.ExploreViewModel
-import com.lumyrinth.app.ui.viewmodels.HomeViewModel
-import com.lumyrinth.app.ui.viewmodels.ProgressViewModel
-import com.lumyrinth.app.ui.viewmodels.SettingsViewModel
-import com.lumyrinth.app.data.session.SessionRepository
 import com.lumyrinth.app.domain.PresetRhythms
-import com.lumyrinth.app.domain.ProgressCalculator
-import com.lumyrinth.app.domain.Rhythm
-import com.lumyrinth.app.domain.RhythmCategory
-import com.lumyrinth.app.haptics.HapticController
-import com.lumyrinth.app.notifications.ReminderScheduler
 import com.lumyrinth.app.ui.components.AppTab
 import com.lumyrinth.app.ui.components.BottomTabBar
 import com.lumyrinth.app.ui.screens.CompleteScreen
@@ -69,488 +46,343 @@ import com.lumyrinth.app.ui.screens.SettingsScreen
 import com.lumyrinth.app.ui.screens.TermsScreen
 import com.lumyrinth.app.ui.screens.WelcomeScreen
 import com.lumyrinth.app.ui.theme.LumyrinthColors
-import kotlinx.coroutines.launch
+import com.lumyrinth.app.ui.viewmodels.CustomRhythmViewModel
+import com.lumyrinth.app.ui.viewmodels.ExploreViewModel
+import com.lumyrinth.app.ui.viewmodels.HomeViewModel
+import com.lumyrinth.app.ui.viewmodels.ProgressViewModel
+import com.lumyrinth.app.ui.viewmodels.SettingsViewModel
 import java.time.LocalDate
-import java.util.UUID
+import kotlinx.coroutines.launch
 
-sealed class Screen {
-    // Onboarding
-    data object Welcome : Screen()
-    data object Goals : Screen()
-    data object Preferences : Screen()
-    data object FirstSession : Screen()
+private object Routes {
+    const val WELCOME = "onboarding/welcome"
+    const val GOALS = "onboarding/goals"
+    const val PREFERENCES = "onboarding/preferences"
+    const val FIRST_SESSION = "onboarding/first-session"
+    const val HOME = "main/home"
+    const val EXPLORE = "main/explore"
+    const val PROGRESS = "main/progress"
+    const val SETTINGS = "main/settings"
+    const val PRIVACY = "legal/privacy"
+    const val TERMS = "legal/terms"
+    const val DETAIL = "rhythm/{rhythmId}?origin={origin}"
+    const val CUSTOM = "custom?rhythmId={rhythmId}"
+    const val SESSION = "session/{rhythmId}/{duration}/{sound}/{haptics}"
+    const val COMPLETE = "complete/{sessionId}/{rhythmId}/{actualSeconds}/{plannedMinutes}/{cycles}"
 
-    // Main App
-    data object Home : Screen()
-    data object Explore : Screen()
-    data object Progress : Screen()
-    data object Settings : Screen()
-
-    // Legal
-    data object PrivacyPolicy : Screen()
-    data object Terms : Screen()
-
-    // Secondary & Modals
-    data class Detail(val rhythm: Rhythm, val returnScreen: Screen = Screen.Explore) : Screen()
-    data class CustomRhythm(val editRhythm: Rhythm? = null) : Screen()
-    data class ActiveSession(
-        val rhythm: Rhythm,
-        val durationMinutes: Int,
-        val soundOn: Boolean,
-        val hapticsOn: Boolean,
-    ) : Screen()
-    data class Complete(
-        val sessionId: Long,
-        val rhythm: Rhythm,
-        val durationMinutes: Int,
-        val cyclesCompleted: Int,
-        val initialMood: String?,
-    ) : Screen()
+    fun detail(id: String, origin: String) = "rhythm/${Uri.encode(id)}?origin=$origin"
+    fun custom(id: String? = null) = "custom?rhythmId=${Uri.encode(id.orEmpty())}"
+    fun session(id: String, duration: Int, sound: Boolean, haptics: Boolean) =
+        "session/${Uri.encode(id)}/$duration/$sound/$haptics"
+    fun complete(sessionId: Long, id: String, seconds: Int, planned: Int, cycles: Int) =
+        "complete/$sessionId/${Uri.encode(id)}/$seconds/$planned/$cycles"
 }
 
 @Composable
 fun LumyrinthApp() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    val appContainer = remember(context) {
+    val container = remember(context) {
         (context.applicationContext as? LumyrinthApplication)?.container
             ?: com.lumyrinth.app.di.AppContainer(context.applicationContext)
     }
-
-    val prefsRepo = appContainer.userPreferencesRepository
-    val sessionRepo = appContainer.sessionRepository
-    val soundController = appContainer.guidanceSoundController
-    val hapticController = appContainer.hapticController
+    val prefsRepo = container.userPreferencesRepository
+    val sessionRepo = container.sessionRepository
 
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(sessionRepo, prefsRepo))
     val exploreViewModel: ExploreViewModel = viewModel(factory = ExploreViewModel.Factory(sessionRepo, prefsRepo))
     val progressViewModel: ProgressViewModel = viewModel(factory = ProgressViewModel.Factory(sessionRepo))
     val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(prefsRepo, sessionRepo))
-    val customRhythmViewModel: CustomRhythmViewModel = viewModel(factory = CustomRhythmViewModel.Factory(sessionRepo))
+    val customViewModel: CustomRhythmViewModel = viewModel(factory = CustomRhythmViewModel.Factory(sessionRepo))
 
-    val userPrefsState = homeViewModel.userPreferences.collectAsState()
-    val userPrefs = userPrefsState.value
+    val userPrefs by homeViewModel.userPreferences.collectAsStateWithLifecycle()
+    val progressSummary by homeViewModel.progressSummary.collectAsStateWithLifecycle()
+    val lastUsedRhythm by homeViewModel.lastUsedRhythm.collectAsStateWithLifecycle()
+    val customRhythms by exploreViewModel.customRhythms.collectAsStateWithLifecycle()
+    val selectedCategory by exploreViewModel.selectedCategory.collectAsStateWithLifecycle()
+    progressViewModel.allSessions.collectAsStateWithLifecycle()
 
-    val sessions by progressViewModel.allSessions.collectAsState()
-    val customRhythms by exploreViewModel.customRhythms.collectAsState()
-    val progressSummary by homeViewModel.progressSummary.collectAsState()
-    val lastUsedRhythm by homeViewModel.lastUsedRhythm.collectAsState()
-
-    val allRhythms = remember(customRhythms) {
-        PresetRhythms.all + customRhythms
-    }
-
-    // Initial screen state (null until userPrefs is loaded)
-    var currentScreen by remember { mutableStateOf<Screen?>(null) }
-    var selectedExploreCategory by remember { mutableStateOf("all") }
-
-    // Initialize current screen once preferences are available
-    LaunchedEffect(userPrefs) {
-        if (userPrefs != null && currentScreen == null) {
-            currentScreen = if (!userPrefs.onboardingComplete) Screen.Welcome else Screen.Home
-        }
-    }
-
-    // While loading preferences, show calm dark splash to prevent screen flicker
-    if (userPrefs == null || currentScreen == null) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(LumyrinthColors.BgBase),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.lumyrinth_mark),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(64.dp),
-            )
-        }
+    val preferences = userPrefs
+    if (preferences == null) {
+        LoadingSplash()
         return
     }
 
-    val activeScreen = currentScreen ?: Screen.Home
-
-    // Hardware Back Button navigation handling
-    when (activeScreen) {
-        is Screen.Goals -> BackHandler { currentScreen = Screen.Welcome }
-        is Screen.Preferences -> BackHandler { currentScreen = Screen.Goals }
-        is Screen.FirstSession -> BackHandler { currentScreen = Screen.Preferences }
-        is Screen.Explore -> BackHandler { currentScreen = Screen.Home }
-        is Screen.Progress -> BackHandler { currentScreen = Screen.Home }
-        is Screen.Settings -> BackHandler { currentScreen = Screen.Home }
-        is Screen.PrivacyPolicy -> BackHandler { currentScreen = Screen.Settings }
-        is Screen.Terms -> BackHandler { currentScreen = Screen.Settings }
-        is Screen.Detail -> BackHandler { currentScreen = Screen.Explore }
-        is Screen.CustomRhythm -> BackHandler { currentScreen = Screen.Explore }
-        is Screen.Complete -> BackHandler { currentScreen = Screen.Home }
-        else -> { /* Welcome, Home, ActiveSession handle back natively */ }
-    }
-
-    // Map screen to bottom navigation tab if applicable
-    val activeTab = when (activeScreen) {
-        is Screen.Home -> AppTab.HOME
-        is Screen.Explore -> AppTab.EXPLORE
-        is Screen.Progress -> AppTab.PROGRESS
-        is Screen.Settings -> AppTab.SETTINGS
-        else -> null
-    }
-
-    val featuredRhythm = remember(userPrefs.selectedGoals) {
+    val allRhythms = remember(customRhythms) { PresetRhythms.all + customRhythms }
+    val featuredRhythm = remember(preferences.selectedGoals) {
         when {
-            userPrefs.selectedGoals.contains("focus") -> PresetRhythms.steady
-            userPrefs.selectedGoals.contains("sleep") -> PresetRhythms.deepRest
-            userPrefs.selectedGoals.contains("break") -> PresetRhythms.quickReset
+            "focus" in preferences.selectedGoals -> PresetRhythms.steady
+            "sleep" in preferences.selectedGoals -> PresetRhythms.deepRest
+            "break" in preferences.selectedGoals -> PresetRhythms.quickReset
             else -> PresetRhythms.slowDown
         }
     }
-
-    fun getScreenTabIndex(screen: Screen): Int {
-        return when (screen) {
-            is Screen.Home -> 0
-            is Screen.Explore -> 1
-            is Screen.Progress -> 2
-            is Screen.Settings -> 3
-            else -> -1
-        }
+    val navController = rememberNavController()
+    val startDestination = remember { if (preferences.onboardingComplete) Routes.HOME else Routes.WELCOME }
+    val entry by navController.currentBackStackEntryAsState()
+    val activeTab = when (entry?.destination?.route) {
+        Routes.HOME -> AppTab.HOME
+        Routes.EXPLORE -> AppTab.EXPLORE
+        Routes.PROGRESS -> AppTab.PROGRESS
+        Routes.SETTINGS -> AppTab.SETTINGS
+        else -> null
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LumyrinthColors.BgBase),
-    ) {
-        AnimatedContent(
-            targetState = activeScreen,
-            transitionSpec = {
-                val initialIndex = getScreenTabIndex(initialState)
-                val targetIndex = getScreenTabIndex(targetState)
-
-                if (initialIndex != -1 && targetIndex != -1) {
-                    // Tab switch transition: slide left/right depending on index direction
-                    if (targetIndex > initialIndex) {
-                        (slideInHorizontally(animationSpec = tween(300)) { width -> width / 3 } +
-                                fadeIn(animationSpec = tween(300))) togetherWith
-                                (slideOutHorizontally(animationSpec = tween(300)) { width -> -width / 3 } +
-                                        fadeOut(animationSpec = tween(250)))
-                    } else {
-                        (slideInHorizontally(animationSpec = tween(300)) { width -> -width / 3 } +
-                                fadeIn(animationSpec = tween(300))) togetherWith
-                                (slideOutHorizontally(animationSpec = tween(300)) { width -> width / 3 } +
-                                        fadeOut(animationSpec = tween(250)))
-                    }
-                } else {
-                    // Secondary screen / Modal push & pop transition
-                    (slideInVertically(animationSpec = tween(320)) { height -> height / 4 } +
-                            fadeIn(animationSpec = tween(300)) +
-                            scaleIn(initialScale = 0.96f, animationSpec = tween(300))) togetherWith
-                            (slideOutVertically(animationSpec = tween(280)) { height -> height / 6 } +
-                                    fadeOut(animationSpec = tween(240)) +
-                                    scaleOut(targetScale = 0.96f, animationSpec = tween(240)))
-                }
-            },
-            label = "screen_transition",
-        ) { target ->
-            when (target) {
-                // Onboarding Screens
-                is Screen.Welcome -> {
-                    WelcomeScreen(
-                        onGetStarted = { currentScreen = Screen.Goals },
-                        onOpenTerms = { currentScreen = Screen.Terms },
-                        onOpenPrivacyPolicy = { currentScreen = Screen.PrivacyPolicy },
-                    )
-                }
-
-                is Screen.Goals -> {
-                    GoalsScreen(
-                        initialGoals = userPrefs.selectedGoals,
-                        onBack = { currentScreen = Screen.Welcome },
-                        onNext = { selectedGoals ->
-                            scope.launch { prefsRepo.setSelectedGoals(selectedGoals) }
-                            currentScreen = Screen.Preferences
+    Box(Modifier.fillMaxSize().background(LumyrinthColors.BgBase)) {
+        NavHost(navController = navController, startDestination = startDestination) {
+            composable(Routes.WELCOME) {
+                WelcomeScreen(
+                    onGetStarted = { navController.navigate(Routes.GOALS) },
+                    onOpenTerms = { navController.navigate(Routes.TERMS) },
+                    onOpenPrivacyPolicy = { navController.navigate(Routes.PRIVACY) },
+                )
+            }
+            composable(Routes.GOALS) {
+                GoalsScreen(
+                    initialGoals = preferences.selectedGoals,
+                    onBack = navController::popBackStack,
+                    onNext = { goals ->
+                        scope.launch { prefsRepo.setSelectedGoals(goals) }
+                        navController.navigate(Routes.PREFERENCES)
+                    },
+                )
+            }
+            composable(Routes.PREFERENCES) {
+                PreferencesScreen(
+                    initialHaptics = preferences.hapticGuidanceDefault,
+                    initialSound = preferences.soundGuidanceDefault,
+                    onBack = navController::popBackStack,
+                    onNext = { haptics, sound ->
+                        scope.launch {
+                            prefsRepo.setHapticGuidanceDefault(haptics)
+                            prefsRepo.setSoundGuidanceDefault(sound)
+                        }
+                        navController.navigate(Routes.FIRST_SESSION)
+                    },
+                )
+            }
+            composable(Routes.FIRST_SESSION) {
+                FirstSessionScreen(
+                    onBeginSession = {
+                        scope.launch { prefsRepo.setOnboardingComplete(true) }
+                        navController.navigate(Routes.session(PresetRhythms.slowDown.id, 1, preferences.soundGuidanceDefault, preferences.hapticGuidanceDefault)) {
+                            popUpTo(Routes.WELCOME) { inclusive = true }
+                        }
+                    },
+                    onExploreFirst = {
+                        scope.launch { prefsRepo.setOnboardingComplete(true) }
+                        navController.navigate(Routes.EXPLORE) { popUpTo(Routes.WELCOME) { inclusive = true } }
+                    },
+                )
+            }
+            composable(Routes.HOME) {
+                HomeScreen(
+                    featuredRhythm = featuredRhythm,
+                    progressSummary = progressSummary,
+                    lastUsedRhythm = lastUsedRhythm,
+                    onStartFeatured = { navController.navigate(Routes.detail(it.id, "home")) },
+                    onMoodFilterClick = {
+                        exploreViewModel.selectedCategory.value = it.id
+                        navigateMain(navController, Routes.EXPLORE)
+                    },
+                    onRepeatLastSession = { navController.navigate(Routes.detail(it.id, "home")) },
+                    onExploreClick = { navigateMain(navController, Routes.EXPLORE) },
+                    onProfileClick = { navigateMain(navController, Routes.SETTINGS) },
+                )
+            }
+            composable(Routes.EXPLORE) {
+                ExploreScreen(
+                    allRhythms = PresetRhythms.all,
+                    customRhythms = customRhythms,
+                    favoriteIds = preferences.favoriteRhythmIds,
+                    selectedCategory = selectedCategory,
+                    onCategoryChange = { exploreViewModel.selectedCategory.value = it },
+                    onSelectRhythm = { navController.navigate(Routes.detail(it.id, "explore")) },
+                    onCreateCustomClick = { navController.navigate(Routes.custom()) },
+                    onEditCustomRhythm = { navController.navigate(Routes.custom(it.id)) },
+                    onDeleteCustomRhythm = exploreViewModel::deleteCustomRhythm,
+                )
+            }
+            composable(Routes.PROGRESS) { ProgressScreen(progressSummary) }
+            composable(Routes.SETTINGS) {
+                SettingsScreen(
+                    userPreferences = preferences,
+                    onToggleHaptics = settingsViewModel::setHapticsDefault,
+                    onToggleSound = settingsViewModel::setSoundDefault,
+                    onToggleReminder = { settingsViewModel.setDailyReminder(context, it) },
+                    onReminderTimeChange = { settingsViewModel.setReminderTime(context, it) },
+                    onAmbientSoundscapeChange = settingsViewModel::setAmbientSoundscape,
+                    onRetakeOnboarding = {
+                        settingsViewModel.resetOnboarding()
+                        navController.navigate(Routes.WELCOME) { popUpTo(0) }
+                    },
+                    onOpenPrivacyPolicy = { navController.navigate(Routes.PRIVACY) },
+                    onOpenTerms = { navController.navigate(Routes.TERMS) },
+                    onClearAllData = {
+                        container.ambientAudioController.pause()
+                        settingsViewModel.clearAllData(context) {
+                            navController.navigate(Routes.WELCOME) { popUpTo(0) }
+                        }
+                    },
+                )
+            }
+            composable(Routes.PRIVACY) { PrivacyPolicyScreen(navController::popBackStack) }
+            composable(Routes.TERMS) { TermsScreen(navController::popBackStack) }
+            composable(
+                route = Routes.DETAIL,
+                arguments = listOf(
+                    navArgument("rhythmId") { type = NavType.StringType },
+                    navArgument("origin") { type = NavType.StringType; defaultValue = "explore" },
+                ),
+            ) { backStack ->
+                val rhythm = allRhythms.firstOrNull { it.id == backStack.arguments?.getString("rhythmId") }
+                if (rhythm == null) LoadingSplash() else DetailScreen(
+                    rhythm = rhythm,
+                    isFavorite = rhythm.id in preferences.favoriteRhythmIds,
+                    defaultSound = if (rhythm.isCustom) rhythm.soundDefault else preferences.soundGuidanceDefault,
+                    defaultHaptics = if (rhythm.isCustom) rhythm.hapticsDefault else preferences.hapticGuidanceDefault,
+                    onBack = navController::popBackStack,
+                    onToggleFavorite = { exploreViewModel.toggleFavorite(rhythm.id) },
+                    onBeginSession = { selected, duration, sound, haptics ->
+                        navController.navigate(Routes.session(selected.id, duration, sound, haptics))
+                    },
+                )
+            }
+            composable(
+                route = Routes.CUSTOM,
+                arguments = listOf(navArgument("rhythmId") { type = NavType.StringType; defaultValue = "" }),
+            ) { backStack ->
+                val id = backStack.arguments?.getString("rhythmId").orEmpty()
+                CustomRhythmScreen(
+                    initialRhythm = allRhythms.firstOrNull { it.id == id },
+                    onBack = navController::popBackStack,
+                    onSaveRhythm = { existingId, name, inhale, hold1, exhale, hold2, duration, sound, haptics ->
+                        customViewModel.saveCustomRhythm(existingId, name, inhale, hold1, exhale, hold2, duration, sound, haptics) { savedId ->
+                            navController.navigate(Routes.detail(savedId, "explore")) { popUpTo(Routes.CUSTOM) { inclusive = true } }
+                        }
+                    },
+                )
+            }
+            composable(
+                route = Routes.SESSION,
+                arguments = listOf(
+                    navArgument("rhythmId") { type = NavType.StringType },
+                    navArgument("duration") { type = NavType.IntType },
+                    navArgument("sound") { type = NavType.BoolType },
+                    navArgument("haptics") { type = NavType.BoolType },
+                ),
+            ) { backStack ->
+                val args = backStack.arguments
+                val rhythm = allRhythms.firstOrNull { it.id == args?.getString("rhythmId") }
+                if (rhythm == null) LoadingSplash() else {
+                    val plannedMinutes = args?.getInt("duration") ?: rhythm.defaultDurationMinutes
+                    SessionScreen(
+                        rhythm = rhythm,
+                        durationMinutes = plannedMinutes,
+                        initialSoundOn = args?.getBoolean("sound") ?: preferences.soundGuidanceDefault,
+                        initialHapticsOn = args?.getBoolean("haptics") ?: preferences.hapticGuidanceDefault,
+                        initialAmbientSound = preferences.ambientSoundscape,
+                        onAmbientSoundChanged = {
+                            container.ambientAudioController.setVolume(preferences.ambientVolume)
+                            container.ambientAudioController.play(it)
                         },
-                    )
-                }
-
-                is Screen.Preferences -> {
-                    PreferencesScreen(
-                        initialHaptics = userPrefs.hapticGuidanceDefault,
-                        initialSound = userPrefs.soundGuidanceDefault,
-                        onBack = { currentScreen = Screen.Goals },
-                        onNext = { haptics, sound ->
+                        onAmbientSoundStopped = container.ambientAudioController::pause,
+                        onPhaseTransition = { phase, sound, haptics ->
+                            if (sound) container.guidanceSoundController.cue(phase)
+                            if (haptics) container.hapticController.cue(phase)
+                        },
+                        onSessionFinished = { completed, seconds, cycles, sound, haptics ->
+                            if (sound) container.guidanceSoundController.complete()
+                            if (haptics) container.hapticController.complete()
                             scope.launch {
-                                prefsRepo.setHapticGuidanceDefault(haptics)
-                                prefsRepo.setSoundGuidanceDefault(sound)
-                            }
-                            currentScreen = Screen.FirstSession
-                        },
-                    )
-                }
-
-                is Screen.FirstSession -> {
-                    FirstSessionScreen(
-                        onBeginSession = {
-                            scope.launch { prefsRepo.setOnboardingComplete(true) }
-                            currentScreen = Screen.ActiveSession(
-                                rhythm = PresetRhythms.slowDown,
-                                durationMinutes = 1,
-                                soundOn = userPrefs.soundGuidanceDefault,
-                                hapticsOn = userPrefs.hapticGuidanceDefault,
-                            )
-                        },
-                        onExploreFirst = {
-                            scope.launch { prefsRepo.setOnboardingComplete(true) }
-                            currentScreen = Screen.Explore
-                        },
-                    )
-                }
-
-                // Main Navigation Screens
-                is Screen.Home -> {
-                    HomeScreen(
-                        featuredRhythm = featuredRhythm,
-                        progressSummary = progressSummary,
-                        lastUsedRhythm = lastUsedRhythm,
-                        onStartFeatured = { rhythm ->
-                            currentScreen = Screen.Detail(rhythm, Screen.Home)
-                        },
-                        onMoodFilterClick = { category ->
-                            selectedExploreCategory = category.id
-                            currentScreen = Screen.Explore
-                        },
-                        onRepeatLastSession = { rhythm ->
-                            currentScreen = Screen.Detail(rhythm, Screen.Home)
-                        },
-                        onExploreClick = { currentScreen = Screen.Explore },
-                        onProfileClick = { currentScreen = Screen.Settings },
-                    )
-                }
-
-                is Screen.Explore -> {
-                    ExploreScreen(
-                        allRhythms = PresetRhythms.all,
-                        customRhythms = customRhythms,
-                        selectedCategory = selectedExploreCategory,
-                        onCategoryChange = { selectedExploreCategory = it },
-                        onSelectRhythm = { rhythm ->
-                            currentScreen = Screen.Detail(rhythm, Screen.Explore)
-                        },
-                        onCreateCustomClick = {
-                            currentScreen = Screen.CustomRhythm(editRhythm = null)
-                        },
-                        onEditCustomRhythm = { rhythm ->
-                            currentScreen = Screen.CustomRhythm(editRhythm = rhythm)
-                        },
-                        onDeleteCustomRhythm = { rhythmId ->
-                            scope.launch {
-                                sessionRepo.deleteCustomRhythm(rhythmId)
-                            }
-                        },
-                    )
-                }
-
-                is Screen.Progress -> {
-                    ProgressScreen(
-                        progressSummary = progressSummary,
-                    )
-                }
-
-                is Screen.Settings -> {
-                    SettingsScreen(
-                        userPreferences = userPrefs,
-                        onToggleHaptics = { scope.launch { prefsRepo.setHapticGuidanceDefault(it) } },
-                        onToggleSound = { scope.launch { prefsRepo.setSoundGuidanceDefault(it) } },
-                        onToggleReminder = { enabled ->
-                            scope.launch {
-                                prefsRepo.setDailyReminderEnabled(enabled)
-                                if (enabled) {
-                                    ReminderScheduler.schedule(context, userPrefs.dailyReminderTime)
-                                } else {
-                                    ReminderScheduler.disable(context)
+                                val savedId = sessionRepo.saveSession(
+                                    SessionEntity(
+                                        rhythmId = rhythm.id,
+                                        rhythmNameSnapshot = rhythm.name,
+                                        dateIso = LocalDate.now().toString(),
+                                        startedAtEpochMillis = System.currentTimeMillis() - seconds * 1_000L,
+                                        completedNaturally = completed,
+                                        durationMinutesPlanned = plannedMinutes,
+                                        durationMinutesActual = seconds / 60,
+                                        durationSecondsActual = seconds,
+                                        cyclesCompleted = cycles,
+                                        soundOn = sound,
+                                        hapticsOn = haptics,
+                                    )
+                                )
+                                navController.navigate(Routes.complete(savedId, rhythm.id, seconds, plannedMinutes, cycles)) {
+                                    popUpTo(Routes.SESSION) { inclusive = true }
                                 }
                             }
                         },
-                        onRetakeOnboarding = {
-                            scope.launch { prefsRepo.resetOnboarding() }
-                            currentScreen = Screen.Welcome
-                        },
-                        onOpenPrivacyPolicy = { currentScreen = Screen.PrivacyPolicy },
-                        onOpenTerms = { currentScreen = Screen.Terms },
-                        onClearAllData = {
-                            scope.launch {
-                                ReminderScheduler.disable(context)
-                                sessionRepo.clearAllData()
-                                prefsRepo.clearAllPreferences()
-                                currentScreen = Screen.Welcome
-                            }
-                        },
-                    )
-                }
-
-                // Legal Screens
-                is Screen.PrivacyPolicy -> {
-                    PrivacyPolicyScreen(
-                        onBack = { currentScreen = Screen.Settings },
-                    )
-                }
-
-                is Screen.Terms -> {
-                    TermsScreen(
-                        onBack = { currentScreen = Screen.Settings },
-                    )
-                }
-
-                // Secondary Flow Screens
-                is Screen.Detail -> {
-                    val isFav = userPrefs.favoriteRhythmIds.contains(target.rhythm.id)
-                    DetailScreen(
-                        rhythm = target.rhythm,
-                        isFavorite = isFav,
-                        defaultSound = userPrefs.soundGuidanceDefault,
-                        defaultHaptics = userPrefs.hapticGuidanceDefault,
-                        onBack = { currentScreen = target.returnScreen },
-                        onToggleFavorite = {
-                            scope.launch { prefsRepo.toggleFavorite(target.rhythm.id) }
-                        },
-                        onBeginSession = { rhythm, durationMins, soundOn, hapticsOn ->
-                            currentScreen = Screen.ActiveSession(
-                                rhythm = rhythm,
-                                durationMinutes = durationMins,
-                                soundOn = soundOn,
-                                hapticsOn = hapticsOn,
-                            )
-                        },
-                    )
-                }
-
-                is Screen.CustomRhythm -> {
-                    CustomRhythmScreen(
-                        initialRhythm = target.editRhythm,
-                        onBack = { currentScreen = Screen.Explore },
-                        onSaveRhythm = { id, name, inhale, hold1, exhale, hold2, durationMins, soundDefault, hapticsDefault ->
-                            val finalId = id ?: "custom_${UUID.randomUUID().toString().take(8)}"
-                            val newRhythm = Rhythm(
-                                id = finalId,
-                                name = name,
-                                category = RhythmCategory.CUSTOM,
-                                shortDescription = "Custom rhythm ($inhale-$hold1-$exhale-$hold2)",
-                                inhaleSeconds = inhale,
-                                hold1Seconds = hold1,
-                                exhaleSeconds = exhale,
-                                hold2Seconds = hold2,
-                                defaultDurationMinutes = durationMins,
-                                recommendedDurationOptions = listOf(1, 3, 5, 10),
-                                isCustom = true,
-                            )
-
-                            scope.launch {
-                                sessionRepo.saveCustomRhythm(
-                                    CustomRhythmEntity(
-                                        id = finalId,
-                                        name = name,
-                                        inhaleSeconds = inhale,
-                                        hold1Seconds = hold1,
-                                        exhaleSeconds = exhale,
-                                        hold2Seconds = hold2,
-                                        defaultDurationMinutes = durationMins,
-                                        soundDefault = soundDefault,
-                                        hapticsDefault = hapticsDefault,
-                                    )
-                                )
-                            }
-
-                            currentScreen = Screen.Detail(newRhythm)
-                        },
-                    )
-                }
-
-                is Screen.ActiveSession -> {
-                    SessionScreen(
-                        rhythm = target.rhythm,
-                        durationMinutes = target.durationMinutes,
-                        initialSoundOn = target.soundOn,
-                        initialHapticsOn = target.hapticsOn,
-                        onPhaseTransition = { phase, soundOn, hapticsOn ->
-                            if (soundOn) soundController.cue(phase)
-                            if (hapticsOn) hapticController.cue(phase)
-                        },
-                        onSessionFinished = { completedNaturally, actualDurationSecs, cyclesCompleted, soundOn, hapticsOn ->
-                            if (soundOn) soundController.complete()
-                            if (hapticsOn) hapticController.complete()
-
-                            val actualMinutes = actualDurationSecs / 60
-                            val sessionEntity = SessionEntity(
-                                rhythmId = target.rhythm.id,
-                                rhythmNameSnapshot = target.rhythm.name,
-                                dateIso = LocalDate.now().toString(),
-                                startedAtEpochMillis = System.currentTimeMillis() - (actualDurationSecs * 1000L),
-                                completedNaturally = completedNaturally,
-                                durationMinutesPlanned = target.durationMinutes,
-                                durationMinutesActual = actualMinutes,
-                                durationSecondsActual = actualDurationSecs,
-                                cyclesCompleted = cyclesCompleted,
-                                soundOn = soundOn,
-                                hapticsOn = hapticsOn,
-                            )
-
-                            scope.launch {
-                                val savedId = sessionRepo.saveSession(sessionEntity)
-                                currentScreen = Screen.Complete(
-                                    sessionId = savedId,
-                                    rhythm = target.rhythm,
-                                    durationMinutes = actualMinutes,
-                                    cyclesCompleted = cyclesCompleted,
-                                    initialMood = null,
-                                )
-                            }
-                        },
-                        onSessionAbandoned = {
-                            currentScreen = Screen.Home
-                        },
-                    )
-                }
-
-                is Screen.Complete -> {
-                    CompleteScreen(
-                        durationMinutes = target.durationMinutes,
-                        cyclesCompleted = target.cyclesCompleted,
-                        initialMood = target.initialMood,
-                        onMoodSelected = { mood ->
-                            scope.launch {
-                                sessionRepo.updateMood(target.sessionId, mood)
-                            }
-                        },
-                        onDone = {
-                            currentScreen = Screen.Home
-                        },
-                        onRepeatSession = {
-                            currentScreen = Screen.ActiveSession(
-                                rhythm = target.rhythm,
-                                durationMinutes = target.durationMinutes,
-                                soundOn = userPrefs.soundGuidanceDefault,
-                                hapticsOn = userPrefs.hapticGuidanceDefault,
-                            )
-                        },
+                        onSessionAbandoned = { navigateMain(navController, Routes.HOME) },
                     )
                 }
             }
+            composable(
+                route = Routes.COMPLETE,
+                arguments = listOf(
+                    navArgument("sessionId") { type = NavType.LongType },
+                    navArgument("rhythmId") { type = NavType.StringType },
+                    navArgument("actualSeconds") { type = NavType.IntType },
+                    navArgument("plannedMinutes") { type = NavType.IntType },
+                    navArgument("cycles") { type = NavType.IntType },
+                ),
+            ) { backStack ->
+                val args = backStack.arguments
+                val rhythm = allRhythms.firstOrNull { it.id == args?.getString("rhythmId") } ?: PresetRhythms.slowDown
+                val sessionId = args?.getLong("sessionId") ?: 0L
+                val seconds = args?.getInt("actualSeconds") ?: 0
+                val planned = args?.getInt("plannedMinutes") ?: rhythm.defaultDurationMinutes
+                val cycles = args?.getInt("cycles") ?: 0
+                CompleteScreen(
+                    durationSeconds = seconds,
+                    cyclesCompleted = cycles,
+                    initialMood = null,
+                    onMoodSelected = { scope.launch { sessionRepo.updateMood(sessionId, it) } },
+                    onDone = { navigateMain(navController, Routes.HOME) },
+                    onRepeatSession = {
+                        navController.navigate(Routes.session(rhythm.id, planned, rhythm.soundDefault, rhythm.hapticsDefault)) {
+                            popUpTo(Routes.COMPLETE) { inclusive = true }
+                        }
+                    },
+                )
+            }
         }
 
-        // Persistent Bottom Tab Bar on main screens
         if (activeTab != null) {
             BottomTabBar(
                 activeTab = activeTab,
                 onTabChange = { tab ->
-                    currentScreen = when (tab) {
-                        AppTab.HOME -> Screen.Home
-                        AppTab.EXPLORE -> Screen.Explore
-                        AppTab.PROGRESS -> Screen.Progress
-                        AppTab.SETTINGS -> Screen.Settings
-                    }
+                    navigateMain(navController, when (tab) {
+                        AppTab.HOME -> Routes.HOME
+                        AppTab.EXPLORE -> Routes.EXPLORE
+                        AppTab.PROGRESS -> Routes.PROGRESS
+                        AppTab.SETTINGS -> Routes.SETTINGS
+                    })
                 },
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
+    }
+}
+
+private fun navigateMain(navController: NavHostController, route: String) {
+    navController.navigate(route) {
+        launchSingleTop = true
+        restoreState = true
+        popUpTo(Routes.HOME) { saveState = true }
+    }
+}
+
+@Composable
+private fun LoadingSplash() {
+    Box(Modifier.fillMaxSize().background(LumyrinthColors.BgBase), contentAlignment = Alignment.Center) {
+        Icon(
+            painter = painterResource(R.drawable.lumyrinth_mark),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(64.dp),
+        )
     }
 }

@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "lumyrinth_schema_v2",
+    "entities": [
+      {
+        "tableName": "breathing_sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `exerciseId` TEXT NOT NULL, `exerciseName` TEXT NOT NULL, `startedAtEpochMillis` INTEGER NOT NULL, `completedAtEpochMillis` INTEGER NOT NULL, `targetDurationMillis` INTEGER NOT NULL, `actualDurationMillis` INTEGER NOT NULL, `cyclesCompleted` INTEGER NOT NULL, `completed` INTEGER NOT NULL, `feeling` TEXT)",
+        "fields": [
+          {"fieldPath":"id","columnName":"id","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"exerciseId","columnName":"exerciseId","affinity":"TEXT","notNull":true},
+          {"fieldPath":"exerciseName","columnName":"exerciseName","affinity":"TEXT","notNull":true},
+          {"fieldPath":"startedAtEpochMillis","columnName":"startedAtEpochMillis","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"completedAtEpochMillis","columnName":"completedAtEpochMillis","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"targetDurationMillis","columnName":"targetDurationMillis","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"actualDurationMillis","columnName":"actualDurationMillis","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"cyclesCompleted","columnName":"cyclesCompleted","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"completed","columnName":"completed","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"feeling","columnName":"feeling","affinity":"TEXT","notNull":false}
+        ],
+        "primaryKey":{"autoGenerate":true,"columnNames":["id"]},
+        "indices":[]
+      },
+      {
+        "tableName": "custom_rhythms",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `inhaleSeconds` INTEGER NOT NULL, `holdAfterInhaleSeconds` INTEGER NOT NULL, `exhaleSeconds` INTEGER NOT NULL, `holdAfterExhaleSeconds` INTEGER NOT NULL, `createdAtEpochMillis` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {"fieldPath":"id","columnName":"id","affinity":"TEXT","notNull":true},
+          {"fieldPath":"name","columnName":"name","affinity":"TEXT","notNull":true},
+          {"fieldPath":"inhaleSeconds","columnName":"inhaleSeconds","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"holdAfterInhaleSeconds","columnName":"holdAfterInhaleSeconds","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"exhaleSeconds","columnName":"exhaleSeconds","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"holdAfterExhaleSeconds","columnName":"holdAfterExhaleSeconds","affinity":"INTEGER","notNull":true},
+          {"fieldPath":"createdAtEpochMillis","columnName":"createdAtEpochMillis","affinity":"INTEGER","notNull":true}
+        ],
+        "primaryKey":{"autoGenerate":false,"columnNames":["id"]},
+        "indices":[]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'lumyrinth_schema_v2')"
+    ]
+  }
+}

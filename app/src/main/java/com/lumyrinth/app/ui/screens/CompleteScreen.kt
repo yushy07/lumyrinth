@@ -55,7 +55,7 @@ import com.lumyrinth.app.ui.theme.LumyrinthTypography
 
 @Composable
 fun CompleteScreen(
-    durationMinutes: Int,
+    durationSeconds: Int,
     cyclesCompleted: Int,
     initialMood: String?,
     onMoodSelected: (String) -> Unit,
@@ -91,7 +91,7 @@ fun CompleteScreen(
                         type = "text/plain"
                         putExtra(
                             Intent.EXTRA_TEXT,
-                            "I just completed a $durationMinutes min breathing session ($cyclesCompleted cycles) with Lumyrinth 🌙✨"
+                            "I completed a ${formatSessionDuration(durationSeconds)} breathing session with Lumyrinth."
                         )
                     }
                     context.startActivity(Intent.createChooser(shareIntent, "Share Session"))
@@ -178,7 +178,7 @@ fun CompleteScreen(
                         modifier = Modifier.weight(1f),
                     ) {
                         Text(
-                            text = "$durationMinutes min",
+                            text = formatSessionDuration(durationSeconds),
                             style = LumyrinthTypography.StatNumber.copy(
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
@@ -276,6 +276,17 @@ fun CompleteScreen(
         )
 
         Spacer(modifier = Modifier.height(6.dp))
+    }
+}
+
+private fun formatSessionDuration(totalSeconds: Int): String {
+    val safeSeconds = totalSeconds.coerceAtLeast(0)
+    val minutes = safeSeconds / 60
+    val seconds = safeSeconds % 60
+    return when {
+        minutes == 0 -> "${seconds}s"
+        seconds == 0 -> "${minutes}m"
+        else -> "${minutes}m ${seconds}s"
     }
 }
 

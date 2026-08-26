@@ -3,6 +3,7 @@ package com.lumyrinth.app.data
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -17,6 +18,8 @@ data class UserPreferences(
     val selectedGoals: Set<String> = setOf("relax", "focus", "build_habit"),
     val hapticGuidanceDefault: Boolean = true,
     val soundGuidanceDefault: Boolean = true,
+    val ambientSoundscape: String = "None",
+    val ambientVolume: Float = 0.35f,
     val dailyReminderEnabled: Boolean = false,
     val dailyReminderTime: String = "20:00",
     val favoriteRhythmIds: Set<String> = emptySet(),
@@ -28,6 +31,8 @@ class UserPreferencesRepository(private val context: Context) {
         val selectedGoals = stringSetPreferencesKey("selected_goals")
         val haptics = booleanPreferencesKey("haptics_guidance_default")
         val sound = booleanPreferencesKey("sound_guidance_default")
+        val ambientSoundscape = stringPreferencesKey("ambient_soundscape")
+        val ambientVolume = floatPreferencesKey("ambient_volume")
         val dailyReminderEnabled = booleanPreferencesKey("daily_reminder_enabled")
         val dailyReminderTime = stringPreferencesKey("daily_reminder_time")
         val favoriteRhythmIds = stringSetPreferencesKey("favorite_rhythm_ids")
@@ -39,6 +44,8 @@ class UserPreferencesRepository(private val context: Context) {
             selectedGoals = stored[Keys.selectedGoals] ?: setOf("relax", "focus", "build_habit"),
             hapticGuidanceDefault = stored[Keys.haptics] ?: true,
             soundGuidanceDefault = stored[Keys.sound] ?: true,
+            ambientSoundscape = stored[Keys.ambientSoundscape] ?: "None",
+            ambientVolume = (stored[Keys.ambientVolume] ?: 0.35f).coerceIn(0f, 1f),
             dailyReminderEnabled = stored[Keys.dailyReminderEnabled] ?: false,
             dailyReminderTime = stored[Keys.dailyReminderTime] ?: "20:00",
             favoriteRhythmIds = stored[Keys.favoriteRhythmIds] ?: emptySet(),
@@ -59,6 +66,14 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setSoundGuidanceDefault(enabled: Boolean) = context.lumyrinthDataStore.edit {
         it[Keys.sound] = enabled
+    }
+
+    suspend fun setAmbientSoundscape(soundscape: String) = context.lumyrinthDataStore.edit {
+        it[Keys.ambientSoundscape] = soundscape
+    }
+
+    suspend fun setAmbientVolume(volume: Float) = context.lumyrinthDataStore.edit {
+        it[Keys.ambientVolume] = volume.coerceIn(0f, 1f)
     }
 
     suspend fun setDailyReminderEnabled(enabled: Boolean) = context.lumyrinthDataStore.edit {
