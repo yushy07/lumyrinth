@@ -65,9 +65,9 @@ fun ConfirmDialog(
     ) {
         val dialogBg = Brush.verticalGradient(
             listOf(
-                Color(0xFF1E1438),
-                Color(0xFF130D24),
-                Color(0xFF160B24),
+                LumyrinthColors.BgElevated,
+                LumyrinthColors.SurfaceCard,
+                LumyrinthColors.BgElevated,
             )
         )
 
@@ -89,7 +89,7 @@ fun ConfirmDialog(
                 .background(dialogBg)
                 .border(
                     1.dp,
-                    if (isDestructive) Color(0x40F43F5E) else Color(0x33A855F7),
+                    if (isDestructive) Color(0x40F43F5E) else LumyrinthColors.BorderSubtle,
                     RoundedCornerShape(26.dp)
                 )
                 .padding(24.dp)
@@ -197,8 +197,8 @@ fun ConfirmDialog(
                             .height(48.dp)
                             .scale(cancelScale)
                             .clip(RoundedCornerShape(999.dp))
-                            .background(Color(0x1AFFFFFF))
-                            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(999.dp))
+                            .background(LumyrinthColors.BgElevated)
+                            .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(999.dp))
                             .clickable(
                                 interactionSource = cancelInteraction,
                                 indication = LocalIndication.current,

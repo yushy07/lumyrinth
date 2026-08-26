@@ -1,5 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -68,7 +69,11 @@ android {
 }
 
 kotlin {
-    jvmToolchain(21)
+    // Compile to Java 21 bytecode without requiring a separate JDK 21 install.
+    // Android Studio's configured JDK (JBR) supplies the compiler.
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
 }
 
 dependencies {

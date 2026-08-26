@@ -79,7 +79,7 @@ fun ToggleSwitch(
                 .height(28.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .background(
-                    if (checked) LumyrinthColors.GradientPrimary
+                    if (checked) Brush.linearGradient(listOf(LumyrinthColors.AccentSuccess, LumyrinthColors.AccentSuccess))
                     else Brush.linearGradient(listOf(LumyrinthColors.ToggleOff, LumyrinthColors.ToggleOff))
                 )
                 .padding(vertical = 3.dp),
@@ -150,7 +150,7 @@ fun SelectableRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Color.White,
+                tint = iconTint,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -218,7 +218,7 @@ fun ChipFilter(
     when (variant) {
         ChipVariant.Pill, ChipVariant.Duration -> {
             val bgBrush = if (selected) {
-                LumyrinthColors.GradientPrimary
+                Brush.linearGradient(listOf(LumyrinthColors.AccentSuccess, LumyrinthColors.AccentSuccess))
             } else {
                 Brush.linearGradient(listOf(LumyrinthColors.SurfaceCard, LumyrinthColors.SurfaceCard))
             }
@@ -246,7 +246,7 @@ fun ChipFilter(
                 Text(
                     text = label,
                     style = LumyrinthTypography.BodySm,
-                    color = if (selected) LumyrinthColors.TextPrimary else LumyrinthColors.TextSecondary,
+                    color = if (selected) Color.White else LumyrinthColors.TextSecondary,
                 )
             }
         }
@@ -254,12 +254,12 @@ fun ChipFilter(
         ChipVariant.MoodCard -> {
             val resolvedIconTint = iconTint ?: LumyrinthColors.AccentPink
             val bgBrush = if (selected) {
-                LumyrinthColors.GradientPrimary
+                Brush.linearGradient(listOf(LumyrinthColors.AccentSuccess, LumyrinthColors.AccentSuccess))
             } else {
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xFF19102E),
-                        Color(0xFF130D24),
+                        LumyrinthColors.SurfaceCard,
+                        LumyrinthColors.BgElevated,
                     )
                 )
             }
@@ -304,7 +304,7 @@ fun ChipFilter(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                     ),
-                    color = if (selected) LumyrinthColors.TextPrimary else LumyrinthColors.TextSecondary,
+                    color = if (selected) Color.White else LumyrinthColors.TextSecondary,
                     textAlign = TextAlign.Center,
                 )
             }

@@ -83,7 +83,7 @@ fun BottomTabBar(
             AppTab.entries.forEach { tab ->
                 val isActive = tab == activeTab
                 val contentColor by animateColorAsState(
-                    targetValue = if (isActive) palette.secondaryAccent else palette.textTertiary,
+                    targetValue = if (isActive) palette.primaryAccent else palette.textTertiary,
                     label = "tab_color_${tab.name}",
                 )
                 val iconScale by animateFloatAsState(
@@ -94,6 +94,8 @@ fun BottomTabBar(
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .clip(CircleShape)
+                        .background(if (isActive) palette.warmAccent.copy(alpha = 0.72f) else Color.Transparent)
                         .semantics { selected = isActive }
                         .selectable(
                             selected = isActive,

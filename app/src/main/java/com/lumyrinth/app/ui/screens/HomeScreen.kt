@@ -4,6 +4,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bedtime
@@ -34,6 +37,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,6 +63,7 @@ import com.lumyrinth.app.ui.components.FeatureCard
 import com.lumyrinth.app.ui.components.HomeProgressSummaryCard
 import com.lumyrinth.app.ui.components.PrimaryButton
 import com.lumyrinth.app.ui.components.StandardCard
+import com.lumyrinth.app.ui.components.ToggleSwitch
 import com.lumyrinth.app.ui.components.rememberIsReducedMotion
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
@@ -69,7 +77,9 @@ fun HomeScreen(
     featuredRhythm: Rhythm,
     progressSummary: ProgressSummary,
     lastUsedRhythm: Rhythm?,
-    onStartFeatured: (Rhythm) -> Unit,
+    initialSoundOn: Boolean,
+    initialHapticsOn: Boolean,
+    onStartFeatured: (Rhythm, Int, Boolean, Boolean) -> Unit,
     onMoodFilterClick: (RhythmCategory) -> Unit,
     onRepeatLastSession: (Rhythm) -> Unit,
     onExploreClick: () -> Unit,
@@ -85,6 +95,9 @@ fun HomeScreen(
     }
 
     val selectedPreset = featuredRhythm
+    var selectedDuration by rememberSaveable { mutableIntStateOf(featuredRhythm.defaultDurationMinutes.coerceIn(1, 10)) }
+    var soundOn by rememberSaveable { mutableStateOf(initialSoundOn) }
+    var hapticsOn by rememberSaveable { mutableStateOf(initialHapticsOn) }
 
     // Staggered screen entry animation
     val reducedMotion = rememberIsReducedMotion()
@@ -163,7 +176,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF1E1433)),
+                        .background(LumyrinthColors.SurfaceCard),
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.SelfImprovement,
@@ -183,66 +196,96 @@ fun HomeScreen(
                     .weight(1f)
                     .verticalScroll(rememberScrollState()),
             ) {
-                // Interactive Breathing Rhythm Presets & Live BreathingCircle Visual Anchor
+                // The opening task: a calm message, grouped settings, then one dominant action.
                 StandardCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .alpha(animProgress.value)
                         .offset { IntOffset(0, ((1f - animProgress.value) * 25).toInt()) },
-                    padding = androidx.compose.foundation.layout.PaddingValues(18.dp),
+                    padding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                    backgroundColor = LumyrinthColors.SurfaceCard,
+                    borderColor = Color.Transparent,
+                    cornerRadius = 28.dp,
                 ) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                        horizontalAlignment = Alignment.Start,
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column {
-                                Text(
-                            text = "RECOMMENDED FOR YOU",
-                                    style = LumyrinthTypography.Label.copy(
-                                        letterSpacing = 1.5.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    ),
-                                    color = Color(0xFFE879F9),
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = selectedPreset.name,
-                                    style = LumyrinthTypography.H2.copy(fontSize = 18.sp),
-                                    color = Color.White,
-                                )
-                            }
-
-                            Text(
-                                text = selectedPreset.patternSummary,
-                                style = LumyrinthTypography.Label.copy(fontSize = 12.sp),
-                                color = LumyrinthColors.TextSecondary,
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
                         Text(
-                            text = selectedPreset.shortDescription,
-                            style = LumyrinthTypography.BodySm.copy(fontSize = 13.sp),
-                            color = LumyrinthColors.TextSecondary,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 8.dp),
+                            text = "Daily message",
+                            style = LumyrinthTypography.Label,
+                            color = LumyrinthColors.AccentPurple,
                         )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        PrimaryButton(
-                            label = "Begin ${selectedPreset.name}",
-                            onClick = { onStartFeatured(selectedPreset) },
-                            modifier = Modifier.fillMaxWidth(),
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Let the next few minutes be simple. Follow your breath; there is nowhere else to be.",
+                            style = LumyrinthTypography.H2.copy(fontSize = 19.sp, lineHeight = 26.sp),
+                            color = LumyrinthColors.TextPrimary,
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                StandardCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    padding = androidx.compose.foundation.layout.PaddingValues(14.dp),
+                    backgroundColor = LumyrinthColors.BgElevated,
+                    borderColor = Color.Transparent,
+                    cornerRadius = 22.dp,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text("Duration", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                listOf(1, 3, 5, 10).forEach { minutes ->
+                                    val selected = selectedDuration == minutes
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(if (selected) LumyrinthColors.AccentSuccess else LumyrinthColors.SurfaceCard)
+                                            .clickable { selectedDuration = minutes }
+                                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                                    ) {
+                                        Text(
+                                            text = "$minutes min",
+                                            style = LumyrinthTypography.Label,
+                                            color = if (selected) Color.White else LumyrinthColors.TextPrimary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text("Haptic guidance", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
+                            ToggleSwitch(checked = hapticsOn, onCheckedChange = { hapticsOn = it })
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text("Guidance tones", style = LumyrinthTypography.Body, color = LumyrinthColors.TextPrimary)
+                            ToggleSwitch(checked = soundOn, onCheckedChange = { soundOn = it })
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                PrimaryButton(
+                    label = "Start breathing",
+                    onClick = { onStartFeatured(selectedPreset, selectedDuration, soundOn, hapticsOn) },
+                    modifier = Modifier.fillMaxWidth().height(72.dp),
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -271,7 +314,7 @@ fun HomeScreen(
                         ChipFilter(
                             label = "Calm",
                             icon = Icons.Rounded.Spa,
-                            iconTint = Color(0xFFA855F7), // Violet
+                            iconTint = LumyrinthColors.AccentPurple,
                             selected = false,
                             onClick = { onMoodFilterClick(RhythmCategory.RELAX) },
                             variant = ChipVariant.MoodCard,
@@ -280,7 +323,7 @@ fun HomeScreen(
                         ChipFilter(
                             label = "Focused",
                             icon = Icons.Rounded.CenterFocusStrong,
-                            iconTint = Color(0xFFE879F9), // Magenta
+                            iconTint = LumyrinthColors.AccentSuccess,
                             selected = false,
                             onClick = { onMoodFilterClick(RhythmCategory.FOCUS) },
                             variant = ChipVariant.MoodCard,
@@ -289,7 +332,7 @@ fun HomeScreen(
                         ChipFilter(
                             label = "Rested",
                             icon = Icons.Rounded.Bedtime,
-                            iconTint = Color(0xFFFDBA74), // Warm Peach/Amber
+                            iconTint = LumyrinthColors.AccentOrange,
                             selected = false,
                             onClick = { onMoodFilterClick(RhythmCategory.SLEEP) },
                             variant = ChipVariant.MoodCard,
@@ -298,7 +341,7 @@ fun HomeScreen(
                         ChipFilter(
                             label = "Refreshed",
                             icon = Icons.Rounded.WbSunny,
-                            iconTint = Color(0xFFFDE047), // Sun Yellow
+                            iconTint = LumyrinthColors.AccentSuccess,
                             selected = false,
                             onClick = { onMoodFilterClick(RhythmCategory.ENERGY) },
                             variant = ChipVariant.MoodCard,
@@ -332,7 +375,7 @@ fun HomeScreen(
                         durationText = displayDurationText,
                         onRepeat = { onRepeatLastSession(lastUsedRhythm) },
                         icon = Icons.Rounded.Spa,
-                        iconTint = Color(0xFFF43F5E),
+                        iconTint = LumyrinthColors.AccentPurple,
                     )
                 }
 

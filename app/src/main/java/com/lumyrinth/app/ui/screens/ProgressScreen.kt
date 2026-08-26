@@ -54,6 +54,7 @@ import com.lumyrinth.app.domain.ProgressSummary
 import com.lumyrinth.app.R
 import com.lumyrinth.app.ui.components.CalendarGrid
 import com.lumyrinth.app.ui.components.StandardCard
+import com.lumyrinth.app.ui.components.ProgressBar
 import com.lumyrinth.app.ui.components.WeeklyBarChart
 import com.lumyrinth.app.ui.components.rememberIsReducedMotion
 import com.lumyrinth.app.ui.theme.LumyrinthColors
@@ -127,7 +128,7 @@ fun ProgressScreen(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                     ),
-                    color = Color(0xFF818CF8), // Purple/Indigo subhead
+                    color = LumyrinthColors.AccentPurple,
                 )
             }
 
@@ -140,8 +141,8 @@ fun ProgressScreen(
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFFFF6D00).copy(alpha = 0.40f * flamePulse),
-                                Color(0xFFE91E63).copy(alpha = 0.15f),
+                                LumyrinthColors.AccentYellow.copy(alpha = 0.45f * flamePulse),
+                                LumyrinthColors.AccentYellow.copy(alpha = 0.16f),
                                 Color.Transparent,
                             ),
                             center = center,
@@ -155,14 +156,14 @@ fun ProgressScreen(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF1F142E))
-                        .border(1.dp, Color(0x33FFFFFF), CircleShape),
+                        .background(LumyrinthColors.SurfaceCard)
+                        .border(1.dp, LumyrinthColors.BorderSubtle, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.LocalFireDepartment,
                         contentDescription = "${progressSummary.currentStreakDays} day streak",
-                        tint = Color(0xFFFF7A00),
+                        tint = LumyrinthColors.AccentSuccess,
                         modifier = Modifier.size(24.dp),
                     )
                 }
@@ -210,8 +211,8 @@ fun ProgressScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(22.dp))
-                        .background(Color(0xFF130E22))
-                        .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(22.dp))
+                        .background(LumyrinthColors.SurfaceCard)
+                        .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(22.dp))
                         .padding(vertical = 16.dp, horizontal = 12.dp),
                 ) {
                     Row(
@@ -258,7 +259,7 @@ fun ProgressScreen(
                             modifier = Modifier
                                 .width(1.dp)
                                 .height(32.dp)
-                                .background(Color(0x1AFFFFFF))
+                                .background(LumyrinthColors.BorderSubtle)
                         )
 
                         // Metric 2: This week
@@ -300,7 +301,7 @@ fun ProgressScreen(
                             modifier = Modifier
                                 .width(1.dp)
                                 .height(32.dp)
-                                .background(Color(0x1AFFFFFF))
+                                .background(LumyrinthColors.BorderSubtle)
                         )
 
                         // Metric 3: Sessions
@@ -326,6 +327,32 @@ fun ProgressScreen(
                             )
                         }
                     }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(LumyrinthColors.BgElevated)
+                        .padding(16.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text("Weekly rhythm", style = LumyrinthTypography.H3, color = LumyrinthColors.TextPrimary)
+                        Text(
+                            "${progressSummary.activeDates.count { it >= today.minusDays(6) }}/7 days",
+                            style = LumyrinthTypography.BodySm,
+                            color = LumyrinthColors.TextSecondary,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    ProgressBar(
+                        progress = progressSummary.activeDates.count { it >= today.minusDays(6) } / 7f,
+                        modifier = Modifier.height(7.dp),
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -377,8 +404,8 @@ fun ProgressScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFF130E22))
-                        .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(20.dp))
+                        .background(LumyrinthColors.SurfaceCard)
+                        .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(20.dp))
                         .padding(18.dp),
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -395,12 +422,12 @@ fun ProgressScreen(
                             Text(
                                 text = "${progressSummary.totalMindfulMinutes} min",
                                 style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                                color = Color(0xFFE879F9),
+                                color = LumyrinthColors.AccentPurple,
                             )
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
-                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0x14FFFFFF)))
+                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(LumyrinthColors.BorderSubtle))
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Row(
@@ -421,12 +448,12 @@ fun ProgressScreen(
                             Text(
                                 text = avgFormatted,
                                 style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                                color = Color.White,
+                                color = LumyrinthColors.TextPrimary,
                             )
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
-                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0x14FFFFFF)))
+                        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(LumyrinthColors.BorderSubtle))
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Row(
@@ -446,7 +473,7 @@ fun ProgressScreen(
                                     progressSummary.activeDates.size,
                                 ),
                                 style = LumyrinthTypography.H3.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                                color = Color(0xFF38BDF8),
+                                color = LumyrinthColors.AccentSuccess,
                             )
                         }
                     }

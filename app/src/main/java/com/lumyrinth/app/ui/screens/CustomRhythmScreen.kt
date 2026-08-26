@@ -124,7 +124,7 @@ fun CustomRhythmScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0B0714))
+            .background(LumyrinthColors.BgBase)
             .statusBarsPadding()
             .padding(horizontal = 20.dp),
     ) {
@@ -143,12 +143,12 @@ fun CustomRhythmScreen(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF160E26)),
+                    .background(LumyrinthColors.SurfaceCard),
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White,
+                    tint = LumyrinthColors.TextPrimary,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -187,7 +187,7 @@ fun CustomRhythmScreen(
                     text = if (initialRhythm != null) "Customize your breathing pattern." else "Build a breathing pattern that works for you.",
                     style = LumyrinthTypography.BodySm.copy(
                         fontSize = 14.sp,
-                        color = Color(0xFF9E95B8),
+                        color = LumyrinthColors.TextSecondary,
                     ),
                     textAlign = TextAlign.Center,
                 )
@@ -211,11 +211,11 @@ fun CustomRhythmScreen(
                     min = 1,
                     max = 30,
                     gradientColors = listOf(
-                        Color(0xFF381A6E),
-                        Color(0xFF231046),
-                        Color(0xFF1B0D36),
+                        LumyrinthColors.PhaseInhaleBg,
+                        LumyrinthColors.SurfaceCard,
+                        LumyrinthColors.BgElevated,
                     ),
-                    borderColor = Color(0x55A855F7),
+                    borderColor = LumyrinthColors.PhaseInhale,
                 )
 
                 // Hold Phase 1 Card (Magenta/Violet)
@@ -226,11 +226,11 @@ fun CustomRhythmScreen(
                     min = 0,
                     max = 30,
                     gradientColors = listOf(
-                        Color(0xFF5A1559),
-                        Color(0xFF380C39),
-                        Color(0xFF240726),
+                        LumyrinthColors.PhaseHold1Bg,
+                        LumyrinthColors.SurfaceCard,
+                        LumyrinthColors.BgElevated,
                     ),
-                    borderColor = Color(0x55EC4899),
+                    borderColor = LumyrinthColors.PhaseHold1,
                 )
 
                 // Exhale Phase Card (Rose/Coral)
@@ -241,11 +241,11 @@ fun CustomRhythmScreen(
                     min = 1,
                     max = 30,
                     gradientColors = listOf(
-                        Color(0xFF6B1B3C),
-                        Color(0xFF451027),
-                        Color(0xFF2B0918),
+                        LumyrinthColors.PhaseExhaleBg,
+                        LumyrinthColors.SurfaceCard,
+                        LumyrinthColors.BgElevated,
                     ),
-                    borderColor = Color(0x55F43F5E),
+                    borderColor = LumyrinthColors.PhaseExhale,
                 )
 
                 // Hold Phase 2 Card (Warm Amber/Bronze)
@@ -256,11 +256,11 @@ fun CustomRhythmScreen(
                     min = 0,
                     max = 30,
                     gradientColors = listOf(
-                        Color(0xFF5E3416),
-                        Color(0xFF3D210D),
-                        Color(0xFF261407),
+                        LumyrinthColors.PhaseHold2Bg,
+                        LumyrinthColors.SurfaceCard,
+                        LumyrinthColors.BgElevated,
                     ),
-                    borderColor = Color(0x55F59E0B),
+                    borderColor = LumyrinthColors.PhaseHold2,
                 )
 
                 // Duration Stepper Card (Dark Subtle Purple)
@@ -294,7 +294,7 @@ fun CustomRhythmScreen(
                 Text(
                     text = validationError ?: "",
                     style = LumyrinthTypography.BodySm,
-                    color = Color(0xFFF43F5E),
+                    color = LumyrinthColors.PhaseExhale,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -305,7 +305,7 @@ fun CustomRhythmScreen(
                 Text(
                     text = "This pattern uses long breath holds. Breathe comfortably, avoid straining, and stop if you feel dizzy.",
                     style = LumyrinthTypography.BodySm,
-                    color = Color(0xFFFDBA74),
+                    color = LumyrinthColors.AccentOrange,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -344,8 +344,8 @@ fun CustomRhythmScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFF160E28))
-                    .border(1.dp, Color(0x33A855F7), RoundedCornerShape(24.dp))
+                    .background(LumyrinthColors.SurfaceCard)
+                    .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(24.dp))
                     .padding(24.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -363,15 +363,15 @@ fun CustomRhythmScreen(
                     OutlinedTextField(
                         value = rhythmName,
                         onValueChange = { rhythmName = it },
-                        placeholder = { Text("e.g. My Evening Calm", style = LumyrinthTypography.Body, color = Color(0x66FFFFFF)) },
+                        placeholder = { Text("e.g. My Evening Calm", style = LumyrinthTypography.Body, color = LumyrinthColors.TextTertiary) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF0F081C),
-                            unfocusedContainerColor = Color(0xFF0F081C),
+                            focusedContainerColor = LumyrinthColors.BgElevated,
+                            unfocusedContainerColor = LumyrinthColors.BgElevated,
                             focusedBorderColor = LumyrinthColors.AccentPurple,
-                            unfocusedBorderColor = Color(0x22FFFFFF),
+                            unfocusedBorderColor = LumyrinthColors.BorderSubtle,
                             focusedTextColor = LumyrinthColors.TextPrimary,
                             unfocusedTextColor = LumyrinthColors.TextPrimary,
                         ),
@@ -459,7 +459,7 @@ private fun PhaseStepperCard(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
             ),
-            color = Color.White,
+            color = LumyrinthColors.TextPrimary,
         )
 
         Row(
@@ -510,16 +510,8 @@ private fun DurationStepperCard(
             .fillMaxWidth()
             .height(60.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        Color(0xFF1B122E),
-                        Color(0xFF140D24),
-                        Color(0xFF100A1F),
-                    )
-                )
-            )
-            .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(20.dp))
+            .background(LumyrinthColors.SurfaceCard)
+            .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(20.dp))
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -530,7 +522,7 @@ private fun DurationStepperCard(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
             ),
-            color = Color.White,
+            color = LumyrinthColors.TextPrimary,
         )
 
         Row(
@@ -556,13 +548,13 @@ private fun DurationStepperCard(
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold,
                     ),
-                    color = Color.White,
+                    color = LumyrinthColors.TextPrimary,
                 )
                 Text(
                     text = "min",
                     style = LumyrinthTypography.BodySm.copy(
                         fontSize = 12.sp,
-                        color = Color(0x99FFFFFF),
+                        color = LumyrinthColors.TextTertiary,
                     ),
                     modifier = Modifier.padding(bottom = 2.dp),
                 )
@@ -599,8 +591,8 @@ private fun CircularStepperButton(
             .size(34.dp)
             .scale(scale)
             .clip(CircleShape)
-            .background(if (enabled) Color(0x33FFFFFF) else Color(0x11FFFFFF))
-            .border(1.dp, if (enabled) Color(0x22FFFFFF) else Color(0x0AFFFFFF), CircleShape)
+            .background(if (enabled) LumyrinthColors.SurfaceCard else LumyrinthColors.BgElevated)
+            .border(1.dp, LumyrinthColors.BorderSubtle, CircleShape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
@@ -613,7 +605,7 @@ private fun CircularStepperButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = if (enabled) Color.White else Color(0x44FFFFFF),
+            tint = if (enabled) LumyrinthColors.TextPrimary else LumyrinthColors.TextTertiary,
             modifier = Modifier.size(16.dp),
         )
     }
@@ -645,13 +637,13 @@ private fun LiveWaveformPreviewCard(
             .background(
                 Brush.horizontalGradient(
                     listOf(
-                        Color(0xFF160E26),
-                        Color(0xFF120B20),
-                        Color(0xFF150D24),
+                        LumyrinthColors.SurfaceCard,
+                        LumyrinthColors.BgElevated,
+                        LumyrinthColors.SurfaceCardAlt,
                     )
                 )
             )
-            .border(1.dp, Color(0x22FFFFFF), RoundedCornerShape(22.dp))
+            .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(22.dp))
             .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -659,7 +651,7 @@ private fun LiveWaveformPreviewCard(
                 text = "Preview",
                 style = LumyrinthTypography.BodySm.copy(
                     fontSize = 13.sp,
-                    color = Color(0x99FFFFFF),
+                    color = LumyrinthColors.TextSecondary,
                 ),
             )
 

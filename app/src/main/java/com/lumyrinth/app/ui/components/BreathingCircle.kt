@@ -1,3 +1,5 @@
+@file:Suppress("UNREACHABLE_CODE")
+
 package com.lumyrinth.app.ui.components
 
 import androidx.compose.animation.AnimatedContent
@@ -55,11 +57,13 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -87,6 +91,15 @@ fun BreathingCircle(
     centerContent: OrbCenterContent = OrbCenterContent.None,
     customContent: (@Composable BoxScope.() -> Unit)? = null,
 ) {
+    ExpressiveBreathingFlower(
+        modifier = modifier,
+        size = circleSize,
+        animationState = animationState,
+        centerContent = centerContent,
+        customContent = customContent,
+    )
+    return
+
     val isReducedMotion = rememberIsReducedMotion()
     val infiniteTransition = rememberInfiniteTransition(label = "breathing_circle_ambient")
 
@@ -485,6 +498,85 @@ fun BreathingCircle(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ExpressiveBreathingFlower(
+    modifier: Modifier,
+    size: Dp,
+    animationState: OrbAnimationState,
+    centerContent: OrbCenterContent,
+    customContent: (@Composable BoxScope.() -> Unit)?,
+) {
+    val palette = LumyrinthThemeTokens.palette
+    val visualScale = when (animationState) {
+        is OrbAnimationState.Breathing -> animationState.scale
+        is OrbAnimationState.Complete -> 0.92f
+        is OrbAnimationState.Idle -> 0.86f
+    }
+    val phase = (animationState as? OrbAnimationState.Breathing)?.phase
+    val fill = when (phase) {
+        BreathPhase.INHALE -> palette.warmAccent
+        BreathPhase.HOLD_AFTER_INHALE -> palette.surfaceCardAlt
+        BreathPhase.EXHALE -> palette.primaryAccent.copy(alpha = 0.72f)
+        BreathPhase.HOLD_AFTER_EXHALE, null -> palette.surfaceCardAlt
+    }
+    val outline = when (phase) {
+        BreathPhase.INHALE -> palette.secondaryAccent
+        else -> palette.primaryAccent.copy(alpha = 0.42f)
+    }
+
+    Box(
+        modifier = modifier.size(size),
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(
+            modifier = Modifier
+                .size(size)
+                .scale(visualScale.coerceIn(0.68f, 1.04f))
+                .clearAndSetSemantics { },
+        ) {
+            val center = Offset(this.size.width / 2f, this.size.height / 2f)
+            val baseRadius = this.size.minDimension * 0.40f
+            val lobes = 10
+            val points = 160
+            val path = Path()
+            repeat(points + 1) { index ->
+                val angle = (index.toFloat() / points) * (2f * PI.toFloat())
+                val radius = baseRadius * (1f + 0.10f * sin(lobes * angle))
+                val x = center.x + cos(angle) * radius
+                val y = center.y + sin(angle) * radius
+                if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            path.close()
+
+            drawPath(path = path, color = outline.copy(alpha = 0.12f))
+            drawPath(path = path, color = fill)
+            drawPath(path = path, color = outline, style = Stroke(width = 3.dp.toPx()))
+            drawCircle(
+                color = palette.primaryAccent,
+                radius = this.size.minDimension * 0.035f,
+                center = center,
+            )
+        }
+
+        when (centerContent) {
+            is OrbCenterContent.Countdown -> Text(
+                text = centerContent.seconds.toString(),
+                style = LumyrinthTypography.Countdown,
+                color = palette.textPrimary,
+                textAlign = TextAlign.Center,
+            )
+            OrbCenterContent.Checkmark -> Icon(
+                imageVector = Icons.Rounded.Check,
+                contentDescription = "Complete",
+                tint = palette.textPrimary,
+                modifier = Modifier.size(48.dp),
+            )
+            OrbCenterContent.None -> Unit
+        }
+        customContent?.invoke(this)
     }
 }
 

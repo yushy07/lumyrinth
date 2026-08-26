@@ -77,7 +77,7 @@ fun ProgressBar(
             .fillMaxWidth()
             .height(4.dp)
             .clip(RoundedCornerShape(999.dp))
-            .background(LumyrinthColors.OverlayWhite08),
+            .background(LumyrinthColors.SurfaceCardAlt),
         contentAlignment = Alignment.CenterStart,
     ) {
         Box(
@@ -85,7 +85,7 @@ fun ProgressBar(
                 .fillMaxHeight()
                 .fillMaxWidth(animatedProgress)
                 .clip(RoundedCornerShape(999.dp))
-                .background(LumyrinthColors.GradientPrimary)
+                .background(Brush.linearGradient(listOf(LumyrinthColors.AccentPurple, LumyrinthColors.AccentPurple)))
         )
     }
 }
@@ -137,20 +137,19 @@ fun WeeklyBarChart(
 
             val isWeekend = index >= 5 // S, S (Saturday, Sunday)
             val barBrush = if (isWeekend) {
-                // Coral / Amber gradient for weekend
+                // Warm accent keeps weekends distinct without returning to neon.
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xFFFB7185), // Coral/pink top
-                        Color(0xFFF97316), // Orange bottom
+                        LumyrinthColors.AccentYellow,
+                        LumyrinthColors.AccentOrange,
                     )
                 )
             } else {
-                // Purple / Magenta gradient for weekdays
+                // Indigo weekday bars match the primary action color.
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xFFE879F9), // Magenta/lavender top
-                        Color(0xFFA855F7), // Purple mid
-                        Color(0xFF6B21A8), // Deep purple bottom
+                        LumyrinthColors.AccentPink,
+                        LumyrinthColors.AccentPurple,
                     )
                 )
             }
@@ -166,7 +165,7 @@ fun WeeklyBarChart(
                         .width(18.dp)
                         .height(96.dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(Color(0xFF161226)),
+                        .background(LumyrinthColors.SurfaceCardAlt),
                     contentAlignment = Alignment.BottomCenter,
                 ) {
                     // Active filled bar
@@ -188,7 +187,7 @@ fun WeeklyBarChart(
                         fontSize = 12.sp,
                         fontWeight = if (stat.isToday) FontWeight.Bold else FontWeight.Medium,
                     ),
-                    color = if (stat.isToday) Color.White else LumyrinthColors.TextSecondary,
+                    color = if (stat.isToday) LumyrinthColors.TextPrimary else LumyrinthColors.TextSecondary,
                 )
             }
         }
@@ -312,16 +311,10 @@ fun CalendarGrid(
 
                         val circleBg = when {
                             isStreak -> Brush.radialGradient(
-                                listOf(
-                                    Color(0xFFFB7185),
-                                    Color(0xFFE11D48),
-                                )
+                                listOf(LumyrinthColors.AccentPurple, LumyrinthColors.AccentPurple)
                             )
                             isPracticed -> Brush.radialGradient(
-                                listOf(
-                                    Color(0xFFD946EF),
-                                    Color(0xFF7E22CE),
-                                )
+                                listOf(LumyrinthColors.AccentYellow, LumyrinthColors.AccentYellow)
                             )
                             else -> Brush.radialGradient(listOf(Color.Transparent, Color.Transparent))
                         }
@@ -354,7 +347,7 @@ fun CalendarGrid(
                                     fontWeight = if (isPracticed || isToday) FontWeight.SemiBold else FontWeight.Normal,
                                 ),
                                 color = when {
-                                    isPracticed || isToday -> Color.White
+                                    isPracticed || isToday -> LumyrinthColors.TextPrimary
                                     else -> LumyrinthColors.TextSecondary
                                 },
                                 textAlign = TextAlign.Center,
@@ -412,7 +405,7 @@ fun CustomMoodFace(
         )
 
         // Features color
-        val featureColor = Color(0xFF1E112A)
+        val featureColor = LumyrinthColors.TextPrimary
 
         val eyeY = center.y - (radius * 0.18f)
         val leftEyeX = center.x - (radius * 0.35f)

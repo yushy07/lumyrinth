@@ -106,7 +106,7 @@ fun PrivacyPolicyScreen(
             // Local-Only Highlight Summary Card
             LegalHighlightCard(
                 icon = Icons.Rounded.Shield,
-                iconTint = Color(0xFF4ADE80),
+                iconTint = LumyrinthColors.AccentSuccess,
                 title = "100% On-Device & Private",
                 summary = LegalContent.PrivacyPolicy.SUMMARY,
             )
@@ -121,15 +121,15 @@ fun PrivacyPolicyScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0x1A28114C))
-                    .border(1.dp, Color(0x33A855F7), RoundedCornerShape(20.dp))
+                    .background(LumyrinthColors.BgElevated)
+                    .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(20.dp))
                     .padding(16.dp),
             ) {
                 Row(verticalAlignment = Alignment.Top) {
                     Icon(
                         imageVector = Icons.Rounded.Info,
                         contentDescription = null,
-                        tint = Color(0xFFC084FC),
+                        tint = LumyrinthColors.AccentPurple,
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -138,7 +138,7 @@ fun PrivacyPolicyScreen(
                             text = "Play Store Publishing Note",
                             style = LumyrinthTypography.BodySm.copy(
                                 fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFFF3E8FF),
+                                color = LumyrinthColors.TextPrimary,
                             ),
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -147,7 +147,7 @@ fun PrivacyPolicyScreen(
                             style = LumyrinthTypography.BodySm.copy(
                                 fontSize = 12.sp,
                                 lineHeight = 17.sp,
-                                color = Color(0xFFD8B4FE),
+                                color = LumyrinthColors.TextSecondary,
                             ),
                         )
                     }
@@ -231,7 +231,7 @@ fun TermsScreen(
             // Medical Disclaimer Highlight Card
             LegalHighlightCard(
                 icon = Icons.Rounded.HealthAndSafety,
-                iconTint = Color(0xFFFB7185),
+                iconTint = LumyrinthColors.AccentPink,
                 title = "Wellness Notice & Disclaimer",
                 summary = "Lumyrinth is designed for general mindfulness and relaxation. It is not a medical device and does not substitute professional medical care.",
             )
@@ -268,11 +268,7 @@ private fun LegalHighlightCard(
     summary: String,
 ) {
     val cardBg = Brush.verticalGradient(
-        listOf(
-            Color(0xFF261048),
-            Color(0xFF160B2A),
-            Color(0xFF180A24),
-        )
+        listOf(LumyrinthColors.SurfaceCard, LumyrinthColors.BgElevated)
     )
 
     Box(
@@ -285,7 +281,7 @@ private fun LegalHighlightCard(
                 Brush.verticalGradient(
                     listOf(
                         iconTint.copy(alpha = 0.5f),
-                        Color(0x26A855F7),
+                        LumyrinthColors.BorderSubtle,
                     )
                 ),
                 RoundedCornerShape(22.dp)
@@ -342,8 +338,8 @@ private fun LegalSectionCard(
     section: LegalContent.LegalSection,
     isImportant: Boolean = false,
 ) {
-    val borderColor = if (isImportant) Color(0x4DF43F5E) else LumyrinthColors.BorderSubtle
-    val bgColor = if (isImportant) Color(0xFF1A0E22) else LumyrinthColors.SurfaceCard
+    val borderColor = if (isImportant) LumyrinthColors.PhaseExhale.copy(alpha = 0.45f) else LumyrinthColors.BorderSubtle
+    val bgColor = if (isImportant) LumyrinthColors.PhaseExhaleBg else LumyrinthColors.SurfaceCard
 
     Box(
         modifier = Modifier
@@ -360,7 +356,7 @@ private fun LegalSectionCard(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                 ),
-                color = if (isImportant) Color(0xFFFDA4AF) else LumyrinthColors.TextPrimary,
+                color = if (isImportant) LumyrinthColors.PhaseExhale else LumyrinthColors.TextPrimary,
             )
 
             Spacer(modifier = Modifier.height(8.dp))

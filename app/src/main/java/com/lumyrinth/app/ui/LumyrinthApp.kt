@@ -184,7 +184,11 @@ fun LumyrinthApp() {
                     featuredRhythm = featuredRhythm,
                     progressSummary = progressSummary,
                     lastUsedRhythm = lastUsedRhythm,
-                    onStartFeatured = { navController.navigate(Routes.detail(it.id, "home")) },
+                    initialSoundOn = preferences.soundGuidanceDefault,
+                    initialHapticsOn = preferences.hapticGuidanceDefault,
+                    onStartFeatured = { rhythm, duration, sound, haptics ->
+                        navController.navigate(Routes.session(rhythm.id, duration, sound, haptics))
+                    },
                     onMoodFilterClick = {
                         exploreViewModel.selectedCategory.value = it.id
                         navigateMain(navController, Routes.EXPLORE)

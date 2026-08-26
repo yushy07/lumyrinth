@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -53,7 +52,8 @@ fun PrimaryButton(
     backgroundBrush: Brush? = null,
 ) {
     val palette = LumyrinthThemeTokens.palette
-    val resolvedBrush = backgroundBrush ?: palette.gradientPrimary
+    val resolvedBrush = backgroundBrush
+        ?: Brush.linearGradient(listOf(palette.primaryAccent, palette.primaryAccent))
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -63,37 +63,16 @@ fun PrimaryButton(
         label = "primary_button_scale",
     )
 
-    val shadowElevation = if (enabled && !loading) 10.dp else 0.dp
-
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
             .scale(scale)
-            .shadow(
-                elevation = shadowElevation,
-                shape = RoundedCornerShape(999.dp),
-                spotColor = palette.primaryAccent.copy(alpha = 0.55f),
-                ambientColor = palette.secondaryAccent.copy(alpha = 0.40f),
-            )
             .clip(RoundedCornerShape(999.dp))
             .background(
                 if (enabled) resolvedBrush else Brush.linearGradient(
                     listOf(palette.surfaceCardAlt, palette.surfaceCardAlt)
                 )
-            )
-            .border(
-                width = 1.dp,
-                brush = Brush.verticalGradient(
-                    colors = if (enabled) listOf(
-                        Color.White.copy(alpha = 0.45f),
-                        Color.White.copy(alpha = 0.05f),
-                    ) else listOf(
-                        Color.Transparent,
-                        Color.Transparent,
-                    )
-                ),
-                shape = RoundedCornerShape(999.dp),
             )
             .clickable(
                 enabled = enabled && !loading,
@@ -179,8 +158,8 @@ fun IconCircleButton(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     iconSize: Dp = 20.dp,
-    tint: Color = Color.White,
-    backgroundColor: Color = LumyrinthColors.OverlayWhite08,
+    tint: Color = LumyrinthColors.TextPrimary,
+    backgroundColor: Color = LumyrinthColors.SurfaceCard,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()

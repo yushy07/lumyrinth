@@ -306,7 +306,7 @@ fun SessionScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF07040D))
+                .background(LumyrinthColors.BgBase)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .padding(horizontal = 24.dp, vertical = 12.dp),
@@ -346,7 +346,7 @@ fun SessionScreen(
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing = 4.sp,
                         ),
-                        color = Color.White,
+                        color = LumyrinthColors.TextPrimary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                     )
@@ -384,14 +384,14 @@ fun SessionScreen(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(Color(0x22FFFFFF))
+                            .background(LumyrinthColors.SurfaceCard)
                             .clickable(role = Role.Button, onClick = { showConfirmClose = true }),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Close,
                             contentDescription = "Close Session",
-                            tint = Color.White,
+                            tint = LumyrinthColors.TextPrimary,
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -401,15 +401,15 @@ fun SessionScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(if (soundOn) Color(0x33A855F7) else Color(0x1AFFFFFF))
-                                .border(1.dp, if (soundOn) Color(0x55C084FC) else Color(0x11FFFFFF), CircleShape)
+                                .background(if (soundOn) LumyrinthColors.AccentYellow else LumyrinthColors.SurfaceCard)
+                                .border(1.dp, LumyrinthColors.BorderSubtle, CircleShape)
                                 .clickable(role = Role.Button, onClick = { soundOn = !soundOn }),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = if (soundOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
                                 contentDescription = if (soundOn) "Disable guidance tones" else "Enable guidance tones",
-                                tint = if (soundOn) Color(0xFFF472B6) else Color(0x88FFFFFF),
+                                tint = if (soundOn) LumyrinthColors.TextPrimary else LumyrinthColors.TextTertiary,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -418,14 +418,14 @@ fun SessionScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(Color(0x22FFFFFF))
+                                .background(LumyrinthColors.SurfaceCard)
                                 .clickable(role = Role.Button, onClick = { showQuickSettings = true }),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.GraphicEq,
                                 contentDescription = "Soundscape & Guidance Settings",
-                                tint = Color.White,
+                                tint = LumyrinthColors.TextPrimary,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -440,8 +440,8 @@ fun SessionScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Color(0x22FFFFFF))
-                            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
+                            .background(LumyrinthColors.SurfaceCard)
+                            .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(20.dp))
                             .padding(horizontal = 14.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -451,7 +451,7 @@ fun SessionScreen(
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
                             ),
-                            color = Color(0xFFF472B6),
+                            color = LumyrinthColors.AccentPurple,
                         )
                     }
 
@@ -467,13 +467,13 @@ fun SessionScreen(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                             ),
-                            color = Color.White,
+                            color = LumyrinthColors.TextPrimary,
                         )
                         Text(
                             text = "remaining",
                             style = LumyrinthTypography.Body.copy(
                                 fontSize = 14.sp,
-                                color = Color(0x99FFFFFF),
+                                color = LumyrinthColors.TextSecondary,
                             ),
                         )
                     }
@@ -485,7 +485,7 @@ fun SessionScreen(
                             .fillMaxWidth(0.9f)
                             .height(5.dp)
                             .clip(RoundedCornerShape(3.dp))
-                            .background(Color(0x2AFFFFFF)),
+                            .background(LumyrinthColors.SurfaceCard),
                     ) {
                         Box(
                             modifier = Modifier
@@ -493,13 +493,7 @@ fun SessionScreen(
                                 .fillMaxWidth(smoothProgress)
                                 .clip(RoundedCornerShape(3.dp))
                                 .background(
-                                    Brush.horizontalGradient(
-                                        listOf(
-                                            Color(0xFFA855F7),
-                                            Color(0xFFEC4899),
-                                            Color(0xFFFB923C),
-                                        )
-                                    )
+                                    Brush.horizontalGradient(listOf(LumyrinthColors.AccentPurple, LumyrinthColors.AccentPurple))
                                 ),
                         )
                     }
@@ -551,7 +545,7 @@ fun SessionScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF07040D))
+                .background(LumyrinthColors.BgBase)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 14.dp),
@@ -570,14 +564,14 @@ fun SessionScreen(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color(0x22FFFFFF))
+                        .background(LumyrinthColors.SurfaceCard)
                         .clickable(role = Role.Button, onClick = { showConfirmClose = true }),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
                         contentDescription = "Close Session",
-                        tint = Color.White,
+                        tint = LumyrinthColors.TextPrimary,
                         modifier = Modifier.size(20.dp),
                     )
                 }
@@ -589,15 +583,15 @@ fun SessionScreen(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(if (soundOn) Color(0x33A855F7) else Color(0x1AFFFFFF))
-                            .border(1.dp, if (soundOn) Color(0x55C084FC) else Color(0x11FFFFFF), CircleShape)
+                            .background(if (soundOn) LumyrinthColors.AccentYellow else LumyrinthColors.SurfaceCard)
+                            .border(1.dp, LumyrinthColors.BorderSubtle, CircleShape)
                             .clickable(role = Role.Button, onClick = { soundOn = !soundOn }),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = if (soundOn) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
                             contentDescription = if (soundOn) "Disable guidance tones" else "Enable guidance tones",
-                            tint = if (soundOn) Color(0xFFF472B6) else Color(0x88FFFFFF),
+                            tint = if (soundOn) LumyrinthColors.TextPrimary else LumyrinthColors.TextTertiary,
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -607,14 +601,14 @@ fun SessionScreen(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(Color(0x22FFFFFF))
+                            .background(LumyrinthColors.SurfaceCard)
                             .clickable(role = Role.Button, onClick = { showQuickSettings = true }),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.GraphicEq,
                             contentDescription = "Soundscape & Guidance Settings",
-                            tint = Color.White,
+                            tint = LumyrinthColors.TextPrimary,
                             modifier = Modifier.size(20.dp),
                         )
                     }
@@ -627,8 +621,8 @@ fun SessionScreen(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color(0x22FFFFFF))
-                    .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(20.dp))
+                    .background(LumyrinthColors.SurfaceCard)
+                    .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(20.dp))
                     .semantics { stateDescription = "Active rhythm: ${currentRhythm.name}" }
                     .padding(horizontal = 14.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
@@ -639,7 +633,7 @@ fun SessionScreen(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                     ),
-                    color = Color(0xFFF472B6),
+                    color = LumyrinthColors.AccentPurple,
                 )
             }
 
@@ -671,7 +665,7 @@ fun SessionScreen(
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 4.sp,
                     ),
-                    color = Color.White,
+                    color = LumyrinthColors.TextPrimary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 )
@@ -703,13 +697,13 @@ fun SessionScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                     ),
-                    color = Color.White,
+                    color = LumyrinthColors.TextPrimary,
                 )
                 Text(
                     text = "remaining",
                     style = LumyrinthTypography.Body.copy(
                         fontSize = 14.sp,
-                        color = Color(0x99FFFFFF),
+                        color = LumyrinthColors.TextSecondary,
                     ),
                 )
             }
@@ -722,7 +716,7 @@ fun SessionScreen(
                     .fillMaxWidth(0.85f)
                     .height(5.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(Color(0x2AFFFFFF)),
+                    .background(LumyrinthColors.SurfaceCard),
             ) {
                 Box(
                     modifier = Modifier
@@ -730,13 +724,7 @@ fun SessionScreen(
                         .fillMaxWidth(smoothProgress)
                         .clip(RoundedCornerShape(3.dp))
                         .background(
-                            Brush.horizontalGradient(
-                                listOf(
-                                    Color(0xFFA855F7), // Purple
-                                    Color(0xFFEC4899), // Pink
-                                    Color(0xFFFB923C), // Orange/Amber
-                                )
-                            )
+                            Brush.horizontalGradient(listOf(LumyrinthColors.AccentPurple, LumyrinthColors.AccentPurple))
                         ),
                 )
             }
@@ -823,7 +811,7 @@ fun SessionScreen(
         ModalBottomSheet(
             onDismissRequest = { showQuickSettings = false },
             sheetState = rememberModalBottomSheetState(),
-            containerColor = Color(0xFF160E28),
+            containerColor = LumyrinthColors.BgElevated,
         ) {
             Column(
                 modifier = Modifier
@@ -903,8 +891,8 @@ private fun CircularControlItem(
             .size(54.dp)
             .scale(scale)
             .clip(CircleShape)
-            .background(if (isActive) Color(0x28FFFFFF) else Color(0x14FFFFFF))
-            .border(1.dp, if (isActive) Color(0x33FFFFFF) else Color(0x10FFFFFF), CircleShape)
+            .background(if (isActive) LumyrinthColors.AccentYellow else LumyrinthColors.SurfaceCard)
+            .border(1.dp, LumyrinthColors.BorderSubtle, CircleShape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
@@ -916,7 +904,7 @@ private fun CircularControlItem(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = if (isActive) Color.White else Color(0x66FFFFFF),
+            tint = if (isActive) LumyrinthColors.TextPrimary else LumyrinthColors.TextTertiary,
             modifier = Modifier.size(24.dp),
         )
     }
@@ -940,15 +928,13 @@ private fun CenterPlayPauseControl(
             .size(76.dp)
             .scale(scale)
             .clip(CircleShape)
-            .background(Color(0xFF130A24))
+            .background(LumyrinthColors.AccentPurple)
             .border(
-                width = 2.dp,
+                width = 0.dp,
                 brush = Brush.sweepGradient(
                     listOf(
-                        Color(0xFFC084FC),
-                        Color(0xFFF472B6),
-                        Color(0xFFFB923C),
-                        Color(0xFFC084FC),
+                        Color.Transparent,
+                        Color.Transparent,
                     )
                 ),
                 shape = CircleShape,

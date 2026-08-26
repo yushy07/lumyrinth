@@ -72,30 +72,30 @@ data class LumyrinthPalette(
 )
 
 val TwilightPalette = LumyrinthPalette(
-    bgBase = Color(0xFF0B0710),
-    bgElevated = Color(0xFF140D20),
-    surfaceCard = Color(0xFF181024),
-    surfaceCardAlt = Color(0xFF211632),
-    borderSubtle = Color(0x1AFFFFFF),
-    borderMedium = Color(0x33FFFFFF),
-    textPrimary = Color(0xFFFFFFFF),
-    textSecondary = Color(0xFFA79FB5),
-    textTertiary = Color(0xFF736A82),
-    primaryAccent = Color(0xFF9333EA),
-    secondaryAccent = Color(0xFFEC4899),
-    warmAccent = Color(0xFFFB923C),
-    accentSuccess = Color(0xFF4ED9A0),
+    bgBase = Color(0xFFF5F3FF),
+    bgElevated = Color(0xFFEDEAFF),
+    surfaceCard = Color(0xFFE5E2FF),
+    surfaceCardAlt = Color(0xFFD8DDF8),
+    borderSubtle = Color(0x1F4E5FB8),
+    borderMedium = Color(0x3D4E5FB8),
+    textPrimary = Color(0xFF292946),
+    textSecondary = Color(0xFF62617A),
+    textTertiary = Color(0xFF85839A),
+    primaryAccent = Color(0xFF4E5FB8),
+    secondaryAccent = Color(0xFF68743B),
+    warmAccent = Color(0xFFF1F679),
+    accentSuccess = Color(0xFF68743B),
     gradientPrimary = Brush.linearGradient(
-        listOf(Color(0xFF8B3FD1), Color(0xFFC548A8), Color(0xFFF2724E))
+        listOf(Color(0xFF4E5FB8), Color(0xFF6674C4), Color(0xFF8994D8))
     ),
     gradientButton = Brush.horizontalGradient(
-        listOf(Color(0xFF9333EA), Color(0xFF6B21A8))
+        listOf(Color(0xFF4E5FB8), Color(0xFF4E5FB8))
     ),
-    phaseInhale = Color(0xFF8B3FD1),
-    phaseHold1 = Color(0xFFD6469C),
-    phaseExhale = Color(0xFFF2724E),
-    phaseHold2 = Color(0xFFB07238),
-    auraGlowColors = listOf(Color(0xFFC084FC), Color(0xFF9333EA), Color(0xFF4C1D95)),
+    phaseInhale = Color(0xFFF1F679),
+    phaseHold1 = Color(0xFFCAD1F6),
+    phaseExhale = Color(0xFF7885CF),
+    phaseHold2 = Color(0xFFDDE1F8),
+    auraGlowColors = listOf(Color(0xFFF1F679), Color(0xFFCAD1F6), Color(0xFF7885CF)),
 )
 
 val SagePalette = LumyrinthPalette(

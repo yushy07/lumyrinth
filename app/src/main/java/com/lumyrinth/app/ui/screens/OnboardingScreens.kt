@@ -1,3 +1,5 @@
+@file:Suppress("UNREACHABLE_CODE")
+
 package com.lumyrinth.app.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
@@ -85,11 +87,13 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.haptics.HapticController
+import com.lumyrinth.app.domain.BreathPhase
 import com.lumyrinth.app.ui.components.GhostButton
 import com.lumyrinth.app.ui.components.GlowOrb
 import com.lumyrinth.app.ui.components.IconCircleButton
 import com.lumyrinth.app.ui.components.OrbAnimationState
 import com.lumyrinth.app.ui.components.OrbCenterContent
+import com.lumyrinth.app.ui.components.BreathingCircle
 import com.lumyrinth.app.ui.components.OrbSize
 import com.lumyrinth.app.ui.components.PageIndicatorDots
 import com.lumyrinth.app.ui.components.PreferenceCard
@@ -646,6 +650,13 @@ fun FeatureBadge(
 fun OnboardingCalmOrb(
     modifier: Modifier = Modifier,
 ) {
+    BreathingCircle(
+        modifier = modifier,
+        circleSize = 220.dp,
+        animationState = OrbAnimationState.Idle(),
+    )
+    return
+
     val palette = LumyrinthThemeTokens.palette
     val infiniteTransition = rememberInfiniteTransition(label = "calm_orb_trans")
 
@@ -775,6 +786,13 @@ fun OnboardingCalmOrb(
 fun OnboardingRhythmAstrolabe(
     modifier: Modifier = Modifier,
 ) {
+    BreathingCircle(
+        modifier = modifier,
+        circleSize = 220.dp,
+        animationState = OrbAnimationState.Breathing(0.92f, BreathPhase.INHALE),
+    )
+    return
+
     val palette = LumyrinthThemeTokens.palette
     val infiniteTransition = rememberInfiniteTransition(label = "astrolabe_trans")
 
@@ -928,6 +946,13 @@ fun OnboardingRhythmAstrolabe(
 fun OnboardingSensoryWaves(
     modifier: Modifier = Modifier,
 ) {
+    BreathingCircle(
+        modifier = modifier,
+        circleSize = 220.dp,
+        animationState = OrbAnimationState.Breathing(0.82f, BreathPhase.EXHALE),
+    )
+    return
+
     val palette = LumyrinthThemeTokens.palette
     val infiniteTransition = rememberInfiniteTransition(label = "sensory_waves_trans")
 
@@ -1042,6 +1067,14 @@ fun OnboardingSensoryWaves(
 fun OnboardingSanctuaryConstellation(
     modifier: Modifier = Modifier,
 ) {
+    BreathingCircle(
+        modifier = modifier,
+        circleSize = 220.dp,
+        animationState = OrbAnimationState.Complete(),
+        centerContent = OrbCenterContent.Checkmark,
+    )
+    return
+
     val palette = LumyrinthThemeTokens.palette
     val infiniteTransition = rememberInfiniteTransition(label = "sanctuary_trans")
 
@@ -1215,12 +1248,12 @@ fun GoalsScreen(
     var selectedGoals by remember { mutableStateOf(defaultInitial) }
 
     val goalsList = listOf(
-        GoalOption("relax", "Relax", Icons.Rounded.Spa, Color(0xFFF43F5E)),
-        GoalOption("focus", "Focus", Icons.Rounded.CenterFocusStrong, Color(0xFFFB7185)),
-        GoalOption("unwind", "Unwind", Icons.Rounded.NightlightRound, Color(0xFFA855F7)),
-        GoalOption("sleep", "Sleep", Icons.Rounded.Bedtime, Color(0xFFC084FC)),
-        GoalOption("break", "Take a quick break", Icons.Rounded.Coffee, Color(0xFFEC4899)),
-        GoalOption("build_habit", "Build a habit", Icons.Rounded.Eco, Color(0xFF4ADE80)),
+        GoalOption("relax", "Relax", Icons.Rounded.Spa, LumyrinthColors.AccentOrange),
+        GoalOption("focus", "Focus", Icons.Rounded.CenterFocusStrong, LumyrinthColors.AccentPurple),
+        GoalOption("unwind", "Unwind", Icons.Rounded.NightlightRound, LumyrinthColors.AccentPink),
+        GoalOption("sleep", "Sleep", Icons.Rounded.Bedtime, LumyrinthColors.AccentPurple),
+        GoalOption("break", "Take a quick break", Icons.Rounded.Coffee, LumyrinthColors.AccentPink),
+        GoalOption("build_habit", "Build a habit", Icons.Rounded.Eco, LumyrinthColors.AccentSuccess),
     )
 
     // Staggered entrance animation
@@ -1357,25 +1390,25 @@ fun GoalItemCard(
     )
 
     val cardBgColor by animateColorAsState(
-        targetValue = if (isSelected) Color(0xFF16122C) else Color(0xFF110E22),
+        targetValue = if (isSelected) LumyrinthColors.SurfaceCardAlt else LumyrinthColors.SurfaceCard,
         animationSpec = tween(durationMillis = 200),
         label = "goal_card_bg",
     )
 
     val cardBorderColor by animateColorAsState(
-        targetValue = if (isSelected) Color(0x409333EA) else Color(0x1AFFFFFF),
+        targetValue = if (isSelected) LumyrinthColors.BorderMedium else LumyrinthColors.BorderSubtle,
         animationSpec = tween(durationMillis = 200),
         label = "goal_card_border",
     )
 
     val checkboxBgColor by animateColorAsState(
-        targetValue = if (isSelected) Color(0xFF9333EA) else Color(0x1F2D2545),
+        targetValue = if (isSelected) LumyrinthColors.AccentSuccess else LumyrinthColors.BgElevated,
         animationSpec = tween(durationMillis = 200),
         label = "checkbox_bg",
     )
 
     val checkboxBorderColor by animateColorAsState(
-        targetValue = if (isSelected) Color(0xFF9333EA) else Color(0x336D5B8D),
+        targetValue = if (isSelected) LumyrinthColors.AccentSuccess else LumyrinthColors.BorderSubtle,
         animationSpec = tween(durationMillis = 200),
         label = "checkbox_border",
     )
@@ -1589,9 +1622,9 @@ fun HapticPreferenceCard(
 ) {
     val cardBg = Brush.verticalGradient(
         listOf(
-            Color(0xFF28114C),
-            Color(0xFF140D2A),
-            Color(0xFF190C28),
+            LumyrinthColors.SurfaceCard,
+            LumyrinthColors.BgElevated,
+            LumyrinthColors.SurfaceCard,
         )
     )
 
@@ -1668,9 +1701,9 @@ fun SoundPreferenceCard(
 ) {
     val cardBg = Brush.verticalGradient(
         listOf(
-            Color(0xFF28114C),
-            Color(0xFF140D2A),
-            Color(0xFF190C28),
+            LumyrinthColors.SurfaceCard,
+            LumyrinthColors.BgElevated,
+            LumyrinthColors.SurfaceCard,
         )
     )
 
@@ -1758,13 +1791,13 @@ fun PurplePillSwitch(
     )
 
     val trackBgColor by animateColorAsState(
-        targetValue = if (checked) Color(0xFF9333EA) else Color(0xFF261D3B),
+        targetValue = if (checked) LumyrinthColors.AccentSuccess else LumyrinthColors.ToggleOff,
         animationSpec = tween(durationMillis = 200),
         label = "switch_track_bg",
     )
 
     val trackBorderColor by animateColorAsState(
-        targetValue = if (checked) Color(0xFFA855F7) else Color(0x33FFFFFF),
+        targetValue = if (checked) LumyrinthColors.AccentSuccess else LumyrinthColors.BorderSubtle,
         animationSpec = tween(durationMillis = 200),
         label = "switch_track_border",
     )
@@ -1860,9 +1893,9 @@ fun AnimatedDottedWaveform(
             val dotAlpha = ((0.45f + (envelope * 0.55f)) * animatedAlpha).coerceIn(0f, 1f)
 
             val color1 = when {
-                i % 3 == 0 -> Color(0xFFF43F5E) // Pink
-                i % 3 == 1 -> Color(0xFFE879F9) // Magenta
-                else -> Color(0xFFC084FC) // Lavender
+                i % 3 == 0 -> LumyrinthColors.AccentOrange
+                i % 3 == 1 -> LumyrinthColors.AccentPink
+                else -> LumyrinthColors.AccentPurple
             }
 
             // Draw primary dot
@@ -1875,7 +1908,7 @@ fun AnimatedDottedWaveform(
             // Draw secondary subtle counter-dot
             if (i % 2 == 0) {
                 drawCircle(
-                    color = Color(0xFFA855F7).copy(alpha = dotAlpha * 0.5f),
+                    color = LumyrinthColors.AccentPurple.copy(alpha = dotAlpha * 0.5f),
                     radius = dotRadius * 0.8f,
                     center = Offset(x, y2),
                 )
@@ -1887,8 +1920,8 @@ fun AnimatedDottedWaveform(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFFFF5277).copy(alpha = 0.65f * animatedAlpha),
-                            Color(0xFFD946EF).copy(alpha = 0.35f * animatedAlpha),
+                            LumyrinthColors.AccentYellow.copy(alpha = 0.65f * animatedAlpha),
+                            LumyrinthColors.AccentPink.copy(alpha = 0.35f * animatedAlpha),
                             Color.Transparent,
                         ),
                         center = Offset(x, y1),
@@ -1969,9 +2002,9 @@ fun AnimatedAudioEqualizerSpectrum(
 
             val barBrush = Brush.verticalGradient(
                 colors = listOf(
-                    Color(0xFFF472B6).copy(alpha = animatedAlpha),
-                    Color(0xFFD946EF).copy(alpha = animatedAlpha * 0.95f),
-                    Color(0xFF9333EA).copy(alpha = animatedAlpha * 0.85f),
+                    LumyrinthColors.AccentYellow.copy(alpha = animatedAlpha),
+                    LumyrinthColors.AccentPink.copy(alpha = animatedAlpha * 0.95f),
+                    LumyrinthColors.AccentPurple.copy(alpha = animatedAlpha * 0.85f),
                 ),
                 startY = barTop,
                 endY = barTop + calculatedHeight,

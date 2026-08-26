@@ -168,8 +168,8 @@ fun FeatureCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
-                        .background(Color(0x333B1869))
-                        .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(999.dp))
+                        .background(LumyrinthColors.BgElevated)
+                        .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(999.dp))
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -179,7 +179,7 @@ fun FeatureCard(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                         ),
-                        color = Color.White.copy(alpha = 0.9f),
+                        color = LumyrinthColors.TextPrimary,
                     )
                 }
             }
@@ -230,8 +230,8 @@ fun FeatureCard(
                         .background(
                             Brush.horizontalGradient(
                                 listOf(
-                                    Color(0xFF381B68),
-                                    Color(0xFF301556),
+                                    LumyrinthColors.AccentPurple,
+                                    LumyrinthColors.AccentPurple,
                                 )
                             )
                         )
@@ -267,8 +267,8 @@ fun FeatureCard(
                         .size(48.dp)
                         .scale(playScale)
                         .clip(CircleShape)
-                        .background(Color(0xFF22113D))
-                        .border(1.dp, Color(0x40A855F7), CircleShape)
+                        .background(LumyrinthColors.AccentPurple)
+                        .border(1.dp, LumyrinthColors.AccentPurple, CircleShape)
                         .clickable(
                             interactionSource = playInteractionSource,
                             indication = LocalIndication.current,
@@ -403,8 +403,8 @@ fun ListRowCard(
 fun MiniAstrolabeOrb(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
-    primaryColor: Color = Color(0xFFA855F7),
-    secondaryColor: Color = Color(0xFFF43F5E),
+    primaryColor: Color = LumyrinthColors.AccentPurple,
+    secondaryColor: Color = LumyrinthColors.AccentPink,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "mini_orb_anim")
     val rotation by infiniteTransition.animateFloat(
@@ -450,7 +450,7 @@ fun MiniAstrolabeOrb(
         val ringColors = listOf(
             secondaryColor.copy(alpha = 0.50f),
             primaryColor.copy(alpha = 0.65f),
-            Color(0xFFE879F9).copy(alpha = 0.80f),
+            LumyrinthColors.AccentYellow.copy(alpha = 0.80f),
         )
 
         rotate(rotation, center) {
@@ -481,11 +481,7 @@ fun MiniAstrolabeOrb(
         // Center glowing sun / star core
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(
-                    Color.White,
-                    Color(0xFFF472B6),
-                    Color.Transparent,
-                ),
+                colors = listOf(Color.White, LumyrinthColors.AccentYellow, Color.Transparent),
                 center = center,
                 radius = maxRadius * 0.28f * pulse,
             ),
@@ -508,8 +504,8 @@ fun ExploreRhythmCard(
     durationText: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    primaryColor: Color = Color(0xFFA855F7),
-    secondaryColor: Color = Color(0xFFF43F5E),
+    primaryColor: Color = LumyrinthColors.AccentPurple,
+    secondaryColor: Color = LumyrinthColors.AccentPink,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
 ) {
@@ -522,9 +518,9 @@ fun ExploreRhythmCard(
 
     val cardBg = Brush.horizontalGradient(
         listOf(
-            Color(0xFF1B1033),
-            Color(0xFF130D24),
-            Color(0xFF160B28),
+            LumyrinthColors.SurfaceCard,
+            LumyrinthColors.BgElevated,
+            LumyrinthColors.SurfaceCard,
         )
     )
 
@@ -624,7 +620,7 @@ fun ExploreRhythmCard(
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 contentDescription = "Select $title",
-                tint = Color(0x66FFFFFF),
+                tint = LumyrinthColors.TextTertiary,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -638,7 +634,7 @@ fun ContinueRhythmCard(
     onRepeat: () -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Rounded.Spa,
-    iconTint: Color = Color(0xFFF43F5E),
+    iconTint: Color = LumyrinthColors.AccentOrange,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -649,9 +645,9 @@ fun ContinueRhythmCard(
 
     val cardBg = Brush.horizontalGradient(
         listOf(
-            Color(0xFF1B1033),
-            Color(0xFF130D24),
-            Color(0xFF180A22),
+            LumyrinthColors.SurfaceCard,
+            LumyrinthColors.BgElevated,
+            LumyrinthColors.SurfaceCard,
         )
     )
 
@@ -666,8 +662,8 @@ fun ContinueRhythmCard(
                 1.dp,
                 Brush.horizontalGradient(
                     listOf(
-                        Color(0x559333EA),
-                        Color(0x22F43F5E),
+                        LumyrinthColors.BorderMedium,
+                        LumyrinthColors.BorderSubtle,
                     )
                 ),
                 RoundedCornerShape(22.dp),
@@ -686,7 +682,7 @@ fun ContinueRhythmCard(
             modifier = Modifier
                 .size(44.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(Color(0x1FF43F5E)),
+                .background(LumyrinthColors.PhaseInhaleBg),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -732,13 +728,10 @@ fun ContinueRhythmCard(
                 .clip(RoundedCornerShape(999.dp))
                 .background(
                     Brush.horizontalGradient(
-                        listOf(
-                            Color(0xFF581C87),
-                            Color(0xFF4C1D95),
-                        )
+                        listOf(LumyrinthColors.AccentPurple, LumyrinthColors.AccentPurple)
                     )
                 )
-                .border(1.dp, Color(0x66A855F7), RoundedCornerShape(999.dp))
+                .border(1.dp, LumyrinthColors.BorderMedium, RoundedCornerShape(999.dp))
                 .clickable(
                     interactionSource = repeatInteractionSource,
                     indication = LocalIndication.current,
@@ -754,7 +747,7 @@ fun ContinueRhythmCard(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                 ),
-                color = Color.White,
+                color = LumyrinthColors.TextPrimary,
             )
         }
 
@@ -763,7 +756,7 @@ fun ContinueRhythmCard(
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             contentDescription = "Open session",
-            tint = Color(0x66FFFFFF),
+            tint = LumyrinthColors.TextTertiary,
             modifier = Modifier.size(18.dp),
         )
     }
@@ -791,8 +784,8 @@ fun HomeProgressSummaryCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(Color(0xFF120E22))
-            .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(22.dp))
+            .background(LumyrinthColors.SurfaceCard)
+            .border(1.dp, LumyrinthColors.BorderSubtle, RoundedCornerShape(22.dp))
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Row(
@@ -841,7 +834,7 @@ fun HomeProgressSummaryCard(
                 modifier = Modifier
                     .width(1.dp)
                     .height(36.dp)
-                    .background(Color(0x1AFFFFFF))
+                    .background(LumyrinthColors.BorderSubtle)
             )
 
             // Middle block: Mindful minutes
@@ -874,7 +867,7 @@ fun HomeProgressSummaryCard(
                 modifier = Modifier
                     .width(1.dp)
                     .height(36.dp)
-                    .background(Color(0x1AFFFFFF))
+                    .background(LumyrinthColors.BorderSubtle)
             )
 
             // Right block: Rhythm streak with glowing flame
@@ -914,8 +907,8 @@ fun HomeProgressSummaryCard(
                         drawCircle(
                             brush = Brush.radialGradient(
                                 colors = listOf(
-                                    Color(0xFFFF5722).copy(alpha = 0.5f * flameGlow.coerceIn(0.5f, 1f)),
-                                    Color(0xFFE91E63).copy(alpha = 0.25f),
+                                    LumyrinthColors.AccentOrange.copy(alpha = 0.5f * flameGlow.coerceIn(0.5f, 1f)),
+                                    LumyrinthColors.AccentPink.copy(alpha = 0.25f),
                                     Color.Transparent,
                                 ),
                                 center = center,
@@ -932,8 +925,8 @@ fun HomeProgressSummaryCard(
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
-                                        Color(0xFFFF9800),
-                                        Color(0xFFE64A19),
+                                        LumyrinthColors.AccentYellow,
+                                        LumyrinthColors.AccentOrange,
                                     )
                                 )
                             ),

@@ -1,3 +1,5 @@
+@file:Suppress("UNREACHABLE_CODE")
+
 package com.lumyrinth.app.ui.components
 
 import android.provider.Settings
@@ -106,6 +108,14 @@ fun GlowOrb(
     centerContent: OrbCenterContent = OrbCenterContent.None,
     animationState: OrbAnimationState = OrbAnimationState.Idle(),
 ) {
+    BreathingCircle(
+        modifier = modifier,
+        circleSize = sizeVariant.dp,
+        centerContent = centerContent,
+        animationState = animationState,
+    )
+    return
+
     val isReducedMotion = rememberIsReducedMotion()
     val infiniteTransition = rememberInfiniteTransition(label = "orb_ambient")
 

@@ -134,11 +134,11 @@ fun ExploreScreen(
 
     fun getCategoryOrbColors(cat: RhythmCategory): Pair<Color, Color> {
         return when (cat) {
-            RhythmCategory.RELAX -> Color(0xFFA855F7) to Color(0xFFF43F5E)
-            RhythmCategory.FOCUS -> Color(0xFF8B5CF6) to Color(0xFFC084FC)
-            RhythmCategory.SLEEP -> Color(0xFF6366F1) to Color(0xFFFDBA74)
-            RhythmCategory.ENERGY -> Color(0xFFF59E0B) to Color(0xFFEF4444)
-            RhythmCategory.CUSTOM -> Color(0xFFEC4899) to Color(0xFFA855F7)
+            RhythmCategory.RELAX -> LumyrinthColors.AccentPurple to LumyrinthColors.AccentPink
+            RhythmCategory.FOCUS -> LumyrinthColors.AccentPurple to LumyrinthColors.PhaseHold1
+            RhythmCategory.SLEEP -> LumyrinthColors.AccentPurple to LumyrinthColors.PhaseHold2
+            RhythmCategory.ENERGY -> LumyrinthColors.AccentOrange to LumyrinthColors.AccentYellow
+            RhythmCategory.CUSTOM -> LumyrinthColors.AccentPink to LumyrinthColors.AccentPurple
         }
     }
 
@@ -181,7 +181,7 @@ fun ExploreScreen(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF160E26)),
+                    .background(LumyrinthColors.SurfaceCard),
             ) {
                 Icon(
                     imageVector = if (isSearchActive) Icons.Rounded.Close else Icons.Rounded.Search,

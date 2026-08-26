@@ -283,8 +283,8 @@ fun SettingsScreen(
 
                     AppColorTheme.entries.forEach { theme ->
                         val isSelected = userPreferences.appTheme == theme.id
-                        val borderCol = if (isSelected) theme.primaryHex else Color(0x1AFFFFFF)
-                        val bgCol = if (isSelected) theme.primaryHex.copy(alpha = 0.15f) else Color(0x0AFFFFFF)
+                        val borderCol = if (isSelected) LumyrinthColors.AccentSuccess else LumyrinthColors.BorderSubtle
+                        val bgCol = if (isSelected) LumyrinthColors.AccentYellow.copy(alpha = 0.62f) else LumyrinthColors.SurfaceCard
 
                         Box(
                             modifier = Modifier
@@ -312,14 +312,14 @@ fun SettingsScreen(
                                                 .size(24.dp)
                                                 .clip(CircleShape)
                                                 .background(theme.primaryHex)
-                                                .border(2.dp, Color(0xFF0B0710), CircleShape),
+                                                .border(2.dp, LumyrinthColors.BgBase, CircleShape),
                                         )
                                         Box(
                                             modifier = Modifier
                                                 .size(24.dp)
                                                 .clip(CircleShape)
                                                 .background(theme.secondaryHex)
-                                                .border(2.dp, Color(0xFF0B0710), CircleShape),
+                                                .border(2.dp, LumyrinthColors.BgBase, CircleShape),
                                         )
                                     }
 
@@ -331,7 +331,7 @@ fun SettingsScreen(
                                             style = LumyrinthTypography.Body.copy(
                                                 fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium,
                                             ),
-                                            color = if (isSelected) Color.White else LumyrinthColors.TextPrimary,
+                                            color = LumyrinthColors.TextPrimary,
                                         )
                                         Text(
                                             text = theme.description,

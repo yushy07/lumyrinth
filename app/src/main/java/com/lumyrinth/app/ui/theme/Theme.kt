@@ -3,12 +3,13 @@ package com.lumyrinth.app.ui.theme
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -168,7 +169,7 @@ private val AppTypography = Typography(
     labelMedium = LumyrinthTypography.Label,
 )
 
-private val DarkColorScheme = darkColorScheme(
+private val LightColorScheme = lightColorScheme(
     primary = LumyrinthColors.AccentPurple,
     onPrimary = LumyrinthColors.TextPrimary,
     secondary = LumyrinthColors.AccentPink,
@@ -196,16 +197,28 @@ fun LumyrinthTheme(
     val selectedTheme = AppColorTheme.fromId(appTheme)
     val palette = when (selectedTheme) {
         AppColorTheme.TWILIGHT -> TwilightPalette
-        AppColorTheme.SAGE -> SagePalette
-        AppColorTheme.AMBER -> AmberPalette
-        AppColorTheme.OCEAN -> OceanPalette
+        AppColorTheme.SAGE -> TwilightPalette.copy(
+            primaryAccent = Color(0xFF4D6F61),
+            secondaryAccent = Color(0xFF68743B),
+            gradientButton = androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(Color(0xFF4D6F61), Color(0xFF4D6F61))),
+        )
+        AppColorTheme.AMBER -> TwilightPalette.copy(
+            primaryAccent = Color(0xFF7A5B26),
+            secondaryAccent = Color(0xFF8A6330),
+            gradientButton = androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(Color(0xFF7A5B26), Color(0xFF7A5B26))),
+        )
+        AppColorTheme.OCEAN -> TwilightPalette.copy(
+            primaryAccent = Color(0xFF38677C),
+            secondaryAccent = Color(0xFF4C6F7F),
+            gradientButton = androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(Color(0xFF38677C), Color(0xFF38677C))),
+        )
     }
 
-    val dynamicColorScheme = darkColorScheme(
+    val dynamicColorScheme = lightColorScheme(
         primary = palette.primaryAccent,
-        onPrimary = palette.textPrimary,
+        onPrimary = Color.White,
         secondary = palette.secondaryAccent,
-        onSecondary = palette.textPrimary,
+        onSecondary = Color.White,
         tertiary = palette.warmAccent,
         onTertiary = palette.textPrimary,
         background = palette.bgBase,
@@ -226,8 +239,10 @@ fun LumyrinthTheme(
         SideEffect {
             val window = (view.context as? Activity)?.window
             if (window != null) {
-                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-                WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
+                window.statusBarColor = android.graphics.Color.TRANSPARENT
+                window.navigationBarColor = android.graphics.Color.TRANSPARENT
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+                WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = true
             }
         }
     }

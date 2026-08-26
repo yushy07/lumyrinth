@@ -43,7 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumyrinth.app.ui.components.GhostButton
-import com.lumyrinth.app.ui.components.GlowOrb
+import com.lumyrinth.app.ui.components.BreathingCircle
 import com.lumyrinth.app.ui.components.MoodPicker
 import com.lumyrinth.app.ui.components.OrbAnimationState
 import com.lumyrinth.app.ui.components.OrbCenterContent
@@ -65,6 +65,9 @@ fun CompleteScreen(
     val context = LocalContext.current
     var selectedMood by remember { mutableStateOf(initialMood) }
     var isVisible by remember { mutableStateOf(false) }
+    val breathsPerMinute = if (durationSeconds > 0) {
+        ((cyclesCompleted * 60f) / durationSeconds).coerceAtLeast(0f)
+    } else 0f
 
     LaunchedEffect(Unit) {
         isVisible = true
@@ -101,7 +104,7 @@ fun CompleteScreen(
                 Icon(
                     imageVector = Icons.Rounded.Share,
                     contentDescription = "Share Session",
-                    tint = Color.White.copy(alpha = 0.85f),
+                    tint = LumyrinthColors.TextPrimary,
                     modifier = Modifier.size(22.dp),
                 )
             }
@@ -141,22 +144,22 @@ fun CompleteScreen(
                     text = "You've found your rhythm.",
                     style = LumyrinthTypography.Body.copy(
                         fontSize = 14.sp,
-                        color = Color(0xFFA89BB9),
+                        color = LumyrinthColors.TextSecondary,
                     ),
                     textAlign = TextAlign.Center,
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Center GlowOrb with Checkmark
+                // A single expressive success shape links the report to the session.
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(220.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    GlowOrb(
-                        sizeVariant = OrbSize.Lg,
+                    BreathingCircle(
+                        circleSize = 220.dp,
                         centerContent = OrbCenterContent.Checkmark,
                         animationState = OrbAnimationState.Complete(),
                     )
@@ -164,7 +167,7 @@ fun CompleteScreen(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // 2 Stat cards: Duration & Cycles
+                // Key metrics are deliberately uniform and easy to scan.
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -216,6 +219,23 @@ fun CompleteScreen(
                             ),
                         )
                     }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            text = String.format(java.util.Locale.getDefault(), "%.1f", breathsPerMinute),
+                            style = LumyrinthTypography.StatNumber.copy(fontSize = 24.sp),
+                            color = LumyrinthColors.TextPrimary,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Breaths / min",
+                            style = LumyrinthTypography.BodySm,
+                            color = LumyrinthColors.TextSecondary,
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -224,8 +244,8 @@ fun CompleteScreen(
                 StandardCard(
                     modifier = Modifier.fillMaxWidth(),
                     padding = androidx.compose.foundation.layout.PaddingValues(vertical = 18.dp, horizontal = 16.dp),
-                    backgroundColor = Color(0xFF130E22),
-                    borderColor = Color(0x26FFFFFF),
+                    backgroundColor = LumyrinthColors.SurfaceCard,
+                    borderColor = Color.Transparent,
                     cornerRadius = 24.dp,
                 ) {
                     Column(
