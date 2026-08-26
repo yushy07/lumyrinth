@@ -25,7 +25,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +46,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -102,19 +106,21 @@ fun WeeklyBarChart(
         animationTriggered = true
     }
 
-    val maxMinutes = (dayStats.maxOfOrNull { it.minutes } ?: 0).coerceAtLeast(10)
+    val maxMinutes = (dayStats.maxOfOrNull { it.minutes } ?: 0).coerceAtLeast(1)
+    val chartDescription = dayStats.joinToString(", ") { "${it.dayOfWeek}: ${it.minutes} minutes" }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(130.dp)
+            .semantics { contentDescription = "Mindful minutes this week. $chartDescription" }
             .padding(horizontal = 6.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom,
     ) {
         dayStats.forEachIndexed { index, stat ->
             val targetHeightFraction = if (stat.minutes == 0) {
-                0.10f
+                0f
             } else {
                 (stat.minutes.toFloat() / maxMinutes.toFloat()).coerceIn(0.20f, 1.0f)
             }
@@ -222,15 +228,15 @@ fun CalendarGrid(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onNextMonth,
-                    )
-                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
+                IconButton(onClick = onPrevMonth, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                        contentDescription = "Previous month",
+                        tint = LumyrinthColors.TextSecondary,
+                    )
+                }
                 val monthName = yearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
                 Text(
                     text = "$monthName ${yearMonth.year}",
@@ -240,13 +246,17 @@ fun CalendarGrid(
                     ),
                     color = LumyrinthColors.TextSecondary,
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    contentDescription = "Next Month",
-                    tint = LumyrinthColors.TextSecondary,
-                    modifier = Modifier.size(16.dp),
-                )
+                IconButton(
+                    onClick = onNextMonth,
+                    enabled = yearMonth < YearMonth.from(today),
+                    modifier = Modifier.size(48.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                        contentDescription = "Next month",
+                        tint = LumyrinthColors.TextSecondary,
+                    )
+                }
             }
         }
 
@@ -295,19 +305,18 @@ fun CalendarGrid(
 
                     if (dayNum in 1..daysInMonth) {
                         val cellDate = yearMonth.atDay(dayNum)
-                        val isWarmStreak = dayNum in listOf(20, 21, 24, 25, 26)
-                        val isPurpleStreak = dayNum in listOf(13, 14, 15, 17, 19)
-                        val isPracticed = cellDate in activeDates || isWarmStreak || isPurpleStreak
+                        val isPracticed = cellDate in activeDates
+                        val isStreak = cellDate in streakDates
                         val isToday = cellDate == today
 
                         val circleBg = when {
-                            isWarmStreak -> Brush.radialGradient(
+                            isStreak -> Brush.radialGradient(
                                 listOf(
                                     Color(0xFFFB7185),
                                     Color(0xFFE11D48),
                                 )
                             )
-                            isPurpleStreak || isPracticed -> Brush.radialGradient(
+                            isPracticed -> Brush.radialGradient(
                                 listOf(
                                     Color(0xFFD946EF),
                                     Color(0xFF7E22CE),
@@ -327,7 +336,14 @@ fun CalendarGrid(
                                     } else {
                                         Modifier
                                     }
-                                ),
+                                )
+                                .semantics {
+                                    contentDescription = buildString {
+                                        append(cellDate.toString())
+                                        append(if (isPracticed) ", practiced" else ", no session")
+                                        if (isStreak) append(", streak day")
+                                    }
+                                },
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(

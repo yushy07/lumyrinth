@@ -51,6 +51,7 @@ import com.lumyrinth.app.domain.ProgressSummary
 import com.lumyrinth.app.ui.components.CalendarGrid
 import com.lumyrinth.app.ui.components.StandardCard
 import com.lumyrinth.app.ui.components.WeeklyBarChart
+import com.lumyrinth.app.ui.components.rememberIsReducedMotion
 import com.lumyrinth.app.ui.theme.LumyrinthColors
 import com.lumyrinth.app.ui.theme.LumyrinthTypography
 import java.time.LocalDate
@@ -71,16 +72,20 @@ fun ProgressScreen(
         isVisible = true
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "flame_anim")
-    val flamePulse by infiniteTransition.animateFloat(
-        initialValue = 0.85f,
-        targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "flame_pulse",
-    )
+    val reducedMotion = rememberIsReducedMotion()
+    val flamePulse = if (reducedMotion) 1f else {
+        val infiniteTransition = rememberInfiniteTransition(label = "flame_anim")
+        val pulse by infiniteTransition.animateFloat(
+            initialValue = 0.85f,
+            targetValue = 1.15f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "flame_pulse",
+        )
+        pulse
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         CosmicSectionBackground(theme = SectionTheme.PROGRESS)
@@ -120,8 +125,8 @@ fun ProgressScreen(
                 )
             }
 
-            // Streak Flame Circular Badge with aura glow
-            Box(
+            // Celebrate only a real streak.
+            if (progressSummary.currentStreakDays > 0) Box(
                 modifier = Modifier.size(48.dp),
                 contentAlignment = Alignment.Center,
             ) {
@@ -150,7 +155,7 @@ fun ProgressScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.LocalFireDepartment,
-                        contentDescription = "Streak Flame",
+                        contentDescription = "${progressSummary.currentStreakDays} day streak",
                         tint = Color(0xFFFF7A00),
                         modifier = Modifier.size(24.dp),
                     )

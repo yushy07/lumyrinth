@@ -7,6 +7,8 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 data class DayMinuteStat(
     val dayOfWeek: DayOfWeek,
@@ -20,6 +22,7 @@ data class ProgressSummary(
     val todaysSessionCount: Int = 0,
     val todaysMindfulMinutes: Int = 0,
     val currentStreakDays: Int = 0,
+    val longestStreakDays: Int = 0,
     val thisWeekMinutes: Int = 0,
     val totalSessionsCount: Int = 0,
     val totalMindfulMinutes: Int = 0,
@@ -36,6 +39,7 @@ object ProgressCalculator {
         sessions: List<SessionEntity>,
         zoneId: ZoneId = ZoneId.systemDefault(),
         today: LocalDate = LocalDate.now(zoneId),
+        locale: Locale = Locale.getDefault(),
     ): ProgressSummary {
         // Map session to local date and duration
         val sessionDates = sessions.map { session ->
@@ -71,6 +75,7 @@ object ProgressCalculator {
 
         // Streak calculation
         val currentStreakDays = calculateStreak(activeDates, today)
+        val longestStreakDays = calculateLongestStreak(activeDates)
         val streakDates = calculateStreakDates(activeDates)
 
         // Weekly chart calculation (Monday through Sunday)
@@ -82,15 +87,7 @@ object ProgressCalculator {
                 if (it.durationSecondsActual > 0) it.durationSecondsActual else it.durationMinutesActual * 60
             }
             val minutes = daySeconds / 60
-            val label = when (date.dayOfWeek) {
-                DayOfWeek.MONDAY -> "M"
-                DayOfWeek.TUESDAY -> "T"
-                DayOfWeek.WEDNESDAY -> "W"
-                DayOfWeek.THURSDAY -> "T"
-                DayOfWeek.FRIDAY -> "F"
-                DayOfWeek.SATURDAY -> "S"
-                DayOfWeek.SUNDAY -> "S"
-            }
+            val label = date.format(DateTimeFormatter.ofPattern("EEEEE", locale))
             DayMinuteStat(
                 dayOfWeek = date.dayOfWeek,
                 dayLabel = label,
@@ -107,6 +104,7 @@ object ProgressCalculator {
             todaysSessionCount = todaysSessionCount,
             todaysMindfulMinutes = todaysMindfulMinutes,
             currentStreakDays = currentStreakDays,
+            longestStreakDays = longestStreakDays,
             thisWeekMinutes = thisWeekMinutes,
             totalSessionsCount = totalSessionsCount,
             totalMindfulMinutes = totalMindfulMinutes,
@@ -141,5 +139,18 @@ object ProgressCalculator {
             }
         }
         return streakDates
+    }
+
+    private fun calculateLongestStreak(activeDates: Set<LocalDate>): Int {
+        if (activeDates.isEmpty()) return 0
+        var longest = 0
+        var current = 0
+        var previous: LocalDate? = null
+        activeDates.sorted().forEach { date ->
+            current = if (previous != null && date == previous!!.plusDays(1)) current + 1 else 1
+            longest = maxOf(longest, current)
+            previous = date
+        }
+        return longest
     }
 }

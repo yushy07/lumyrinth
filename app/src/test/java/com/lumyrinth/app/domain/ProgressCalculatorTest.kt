@@ -5,6 +5,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.Locale
 
 class ProgressCalculatorTest {
 
@@ -69,4 +71,50 @@ class ProgressCalculatorTest {
         assertEquals(2, summary.totalSessionsCount)
         assertEquals(2, summary.totalMindfulMinutes)
     }
+
+    @Test
+    fun computeProgress_combinesShortSessionsBeforeRounding() {
+        val today = LocalDate.of(2026, 8, 26)
+        val zone = ZoneId.of("UTC")
+        val sessions = listOf(sessionAt(today, 40, zone, 1), sessionAt(today, 40, zone, 2))
+        val summary = ProgressCalculator.compute(sessions, zone, today, Locale.US)
+        assertEquals(1, summary.totalMindfulMinutes)
+        assertEquals(2.0 / 3.0, summary.averageSessionMinutes, 0.001)
+    }
+
+    @Test
+    fun computeProgress_countsCurrentAndLongestStreaks() {
+        val today = LocalDate.of(2026, 8, 26)
+        val zone = ZoneId.of("UTC")
+        val dates = listOf(today.minusDays(6), today.minusDays(5), today.minusDays(4), today.minusDays(1), today)
+        val sessions = dates.mapIndexed { index, date -> sessionAt(date, 60, zone, index.toLong()) }
+        val summary = ProgressCalculator.compute(sessions, zone, today, Locale.US)
+        assertEquals(2, summary.currentStreakDays)
+        assertEquals(3, summary.longestStreakDays)
+    }
+
+    @Test
+    fun computeProgress_usesSuppliedTimezoneAtDayBoundary() {
+        val zone = ZoneId.of("Asia/Kolkata")
+        val today = LocalDate.of(2026, 8, 27)
+        val instant = ZonedDateTime.parse("2026-08-26T23:30:00Z").toInstant().toEpochMilli()
+        val session = sessionAt(today, 60, zone, 1).copy(startedAtEpochMillis = instant)
+        val summary = ProgressCalculator.compute(listOf(session), zone, today, Locale.US)
+        assertEquals(1, summary.todaysSessionCount)
+    }
+
+    private fun sessionAt(date: LocalDate, seconds: Int, zone: ZoneId, id: Long) = SessionEntity(
+        id = id,
+        rhythmId = "slow_down",
+        rhythmNameSnapshot = "Slow Down",
+        dateIso = date.toString(),
+        startedAtEpochMillis = date.atStartOfDay(zone).toInstant().toEpochMilli(),
+        completedNaturally = true,
+        durationMinutesPlanned = 1,
+        durationMinutesActual = seconds / 60,
+        durationSecondsActual = seconds,
+        cyclesCompleted = 0,
+        soundOn = false,
+        hapticsOn = false,
+    )
 }
