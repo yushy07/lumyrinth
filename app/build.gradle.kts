@@ -14,7 +14,7 @@ ksp {
 
 android {
     namespace = "com.lumyrinth.app"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.lumyrinth.app"

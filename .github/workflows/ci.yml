@@ -25,11 +25,6 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Set up Android API 37
-        uses: android-actions/setup-android@v4
-        with:
-          packages: platforms;android-37 build-tools;37.0.0
-
       - name: Grant Execute Permission for Gradle Wrapper
         run: chmod +x gradlew
 
