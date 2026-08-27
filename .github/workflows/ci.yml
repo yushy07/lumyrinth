@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+# The build only needs to read repository contents.
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     name: Build, Test and Lint
