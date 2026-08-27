@@ -14,7 +14,7 @@ buildscript {
             force("org.apache.commons:commons-lang3:3.20.0")
             force("org.apache.httpcomponents:httpclient:4.5.14")
             eachDependency {
-                if (requested.group == "io.netty") useVersion("4.1.137.Final")
+                if (requested.group == "io.netty") useVersion("4.2.17.Final")
                 if (requested.group == "org.bouncycastle" && requested.name.endsWith("jdk18on")) {
                     useVersion("1.85")
                 }
@@ -33,7 +33,7 @@ allprojects {
             force("org.apache.commons:commons-lang3:3.20.0")
             force("org.apache.httpcomponents:httpclient:4.5.14")
             eachDependency {
-                if (requested.group == "io.netty") useVersion("4.1.137.Final")
+                if (requested.group == "io.netty") useVersion("4.2.17.Final")
                 if (requested.group == "org.bouncycastle" && requested.name.endsWith("jdk18on")) {
                     useVersion("1.85")
                 }
